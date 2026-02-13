@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin';
+export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1';
 
 export interface Course {
   id: string;
@@ -98,6 +98,81 @@ export interface Announcement {
   };
 }
 
+// ============================================================================
+// MODULE 1: OWNING YOUR CLOCK - Time Management Module
+// ============================================================================
+
+export interface DailyTimeLog {
+  id: string;
+  userId: string;
+  moduleId: string;
+  dayNumber: number;
+  startTime: string | null;
+  endTime: string | null;
+  totalHours: number;
+  events: string | null;
+  notes: string | null;
+  loggedAt: string;
+}
+
+export interface TaskInventory {
+  id: string;
+  userId: string;
+  moduleId: string;
+  title: string;
+  category: string;
+  description: string | null;
+  estimatedHours: number | null;
+}
+
+export interface EisenhowerMatrixItem {
+  id: string;
+  userId: string;
+  taskId: string | null;
+  taskTitle: string;
+  importance: string;
+  urgency: string;
+  quadrant: string;
+  notes: string | null;
+}
+
+export interface WeeklyScheduleEntry {
+  id: string;
+  userId: string;
+  moduleId: string;
+  dayOfWeek: number;
+  timeBlocks: string;
+  theme: string | null;
+  isNonWorkDay: boolean;
+}
+
+export interface GateSubmission {
+  id: string;
+  userId: string;
+  courseId: string;
+  moduleName: string;
+  gateName: string;
+  submissionData: string;
+  fileUrl: string | null;
+  status: string;
+  submittedAt: string;
+  reviewedAt: string | null;
+  feedback: string | null;
+}
+
+export interface ModuleOneData {
+  currentDay: number;
+  completedGates: string[];
+  baselineData?: DailyTimeLog[];
+  tasks?: TaskInventory[];
+  eisenhowerMatrix?: EisenhowerMatrixItem[];
+  weeklySchedule?: WeeklyScheduleEntry[];
+  gateSubmissions?: GateSubmission[];
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  startedAt?: string;
+  completedAt?: string;
+}
+
 interface CourseState {
   // View state
   currentView: ViewMode;
@@ -129,6 +204,16 @@ interface CourseState {
   selectedLevel: string | null;
   setSelectedLevel: (level: string | null) => void;
 
+  // Module 1 state
+  moduleOneData: ModuleOneData | null;
+  setModuleOneData: (data: ModuleOneData | null) => void;
+  currentDay: number;
+  setCurrentDay: (day: number) => void;
+  completedGates: string[];
+  setCompletedGates: (gates: string[]) => void;
+  isTimeMaster: boolean;
+  setIsTimeMaster: (isMaster: boolean) => void;
+
   // Reset
   reset: () => void;
 }
@@ -143,6 +228,10 @@ const initialState = {
   searchQuery: '',
   selectedCategory: null,
   selectedLevel: null,
+  moduleOneData: null,
+  currentDay: 1,
+  completedGates: [],
+  isTimeMaster: false,
 };
 
 export const useCourseStore = create<CourseState>((set) => ({
@@ -156,5 +245,9 @@ export const useCourseStore = create<CourseState>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedCategory: (category) => set({ selectedCategory: category }),
   setSelectedLevel: (level) => set({ selectedLevel: level }),
+  setModuleOneData: (data) => set({ moduleOneData: data }),
+  setCurrentDay: (day) => set({ currentDay: day }),
+  setCompletedGates: (gates) => set({ completedGates: gates }),
+  setIsTimeMaster: (isMaster) => set({ isTimeMaster: isMaster }),
   reset: () => set(initialState),
 }));

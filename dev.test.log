@@ -1,0 +1,10 @@
+$ next dev -p 3000 2>&1 | tee dev.log
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.158:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 1543ms
+prisma:query SELECT `main`.`module_progress`.`id`, `main`.`module_progress`.`userId`, `main`.`module_progress`.`courseId`, `main`.`module_progress`.`moduleName`, `main`.`module_progress`.`currentDay`, `main`.`module_progress`.`completedGates`, `main`.`module_progress`.`status`, `main`.`module_progress`.`startedAt`, `main`.`module_progress`.`completedAt`, `main`.`module_progress`.`updatedAt` FROM `main`.`module_progress` WHERE ((`main`.`module_progress`.`userId` = ? AND `main`.`module_progress`.`courseId` = ? AND `main`.`module_progress`.`moduleName` = ?) AND 1=1) LIMIT ? OFFSET ?
+ GET /api/modules/progress?userId=test&moduleName=MODULE_1 200 in 1590ms (compile: 1505ms, render: 86ms)

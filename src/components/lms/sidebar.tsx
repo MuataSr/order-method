@@ -11,15 +11,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  Calendar,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 
-const navItems: { id: ViewMode; label: string; icon: React.ElementType }[] = [
+const navItems: { id: ViewMode; label: string; icon: React.ElementType; locked?: boolean }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'catalog', label: 'Course Catalog', icon: BookOpen },
+  { id: 'module-1', label: 'Module 1: Own Your Clock', icon: Calendar },
   { id: 'admin', label: 'Admin Panel', icon: Settings },
 ];
 
@@ -106,34 +109,43 @@ export function Sidebar({ onCollapse }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={currentView === item.id ? 'secondary' : 'ghost'}
-              className={cn(
-                'w-full justify-start gap-3',
-                collapsed && 'justify-center px-2'
-              )}
-              onClick={() => {
-                setCurrentView(item.id);
-                setSidebarOpen(false);
-              }}
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              <AnimatePresence mode="wait">
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    className="truncate"
-                  >
-                    {item.label}
-                  </motion.span>
+          {navItems.map((item) => {
+            const isLocked = item.id === 'module-1' && item.locked;
+            return (
+              <Button
+                key={item.id}
+                variant={currentView === item.id ? 'secondary' : 'ghost'}
+                className={cn(
+                  'w-full justify-start gap-3',
+                  collapsed && 'justify-center px-2',
+                  isLocked && 'opacity-60'
                 )}
-              </AnimatePresence>
-            </Button>
-          ))}
+                onClick={() => {
+                  if (isLocked) return;
+                  setCurrentView(item.id);
+                  setSidebarOpen(false);
+                }}
+                disabled={isLocked}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <AnimatePresence mode="wait">
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      className="truncate flex-1 text-left"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {!collapsed && isLocked && (
+                  <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
+              </Button>
+            );
+          })}
         </nav>
 
         {/* User section */}

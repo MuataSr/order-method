@@ -9,6 +9,7 @@ import { DashboardView } from '@/components/lms/dashboard-view';
 import { CatalogView } from '@/components/lms/catalog-view';
 import { CourseView } from '@/components/lms/course-view';
 import { AdminView } from '@/components/lms/admin-view';
+import { ModuleOneView } from '@/components/lms/module-1/module-1-view';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
@@ -40,6 +41,8 @@ export default function Home() {
         return <CatalogView />;
       case 'course':
         return <CourseView />;
+      case 'module-1':
+        return <ModuleOneView />;
       case 'admin':
         return <AdminView />;
       default:

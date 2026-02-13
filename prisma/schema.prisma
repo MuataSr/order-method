@@ -31,6 +31,14 @@ model User {
   discussions       Discussion[]
   discussionReplies DiscussionReply[]
 
+  // Module 1 Relations
+  moduleProgress    ModuleProgress[]    @relation("ModuleProgressUser")
+  dailyTimeLogs     DailyTimeLog[]     @relation("DailyTimeLogUser")
+  taskInventory     TaskInventory[]     @relation("TaskInventoryUser")
+  eisenhowerItems   EisenhowerMatrix[]  @relation("EisenhowerUser")
+  weeklySchedules   WeeklySchedule[]    @relation("WeeklyScheduleUser")
+  gateSubmissions   GateSubmission[]    @relation("GateSubmissionUser")
+
   @@map("users")
 }
 
@@ -256,4 +264,122 @@ model DiscussionReply {
 
   @@index([discussionId])
   @@map("discussion_replies")
+}
+
+// ============================================================================
+// MODULE 1: OWNING YOUR CLOCK - TIME MANAGEMENT
+// ============================================================================
+
+// Module Progress Tracking
+model ModuleProgress {
+  id            String    @id @default(cuid())
+  userId        String
+  courseId      String    @default("order-framework") // O.R.D.E.R. is one course
+  moduleName    String    // "MODULE_1", "MODULE_2", etc.
+  currentDay    Int       @default(0)
+  completedGates String   @default("") // JSON array of gate names
+  status        String    @default("NOT_STARTED") // NOT_STARTED, IN_PROGRESS, COMPLETED
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  user          User      @relation("ModuleProgressUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, moduleName])
+  @@index([userId])
+  @@map("module_progress")
+}
+
+// Daily Time Log for baseline assessment
+model DailyTimeLog {
+  id          String    @id @default(cuid())
+  userId      String
+  moduleId    String    @default("MODULE_1")
+  dayNumber   Int       // Day 1, 2, etc.
+  startTime   String?   // "09:00"
+  endTime     String?   // "17:00"
+  totalHours  Float
+  events      String?   // JSON or text description of significant events
+  notes       String?
+  loggedAt    DateTime  @default(now())
+
+  // Relations
+  user        User      @relation("DailyTimeLogUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, moduleId])
+  @@map("daily_time_logs")
+}
+
+// Task Inventory
+model TaskInventory {
+  id             String    @id @default(cuid())
+  userId         String
+  moduleId       String    @default("MODULE_1")
+  title          String
+  category       String    // "CLIENT_WORK", "TEAM_MGMT", "ADMIN", "MARKETING", "CONTENT", "CREATIVE", "EMERGENCIES"
+  description    String?
+  estimatedHours Float?
+
+  // Relations
+  user           User      @relation("TaskInventoryUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, moduleId])
+  @@map("task_inventory")
+}
+
+// Eisenhower Matrix categorization
+model EisenhowerMatrix {
+  id          String    @id @default(cuid())
+  userId      String
+  taskId      String?
+  taskTitle   String
+  importance  String    // "HIGH", "LOW"
+  urgency     String    // "HIGH", "LOW"
+  quadrant    String    // "DO_NOW", "SCHEDULE", "DELEGATE", "DELETE"
+  notes       String?
+
+  // Relations
+  user        User      @relation("EisenhowerUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("eisenhower_matrix")
+}
+
+// Weekly Schedule Template
+model WeeklySchedule {
+  id            String    @id @default(cuid())
+  userId        String
+  moduleId      String    @default("MODULE_1")
+  dayOfWeek     Int       // 0-6 (Mon-Sun)
+  timeBlocks    String    // JSON: array of {start, end, type, theme}
+  theme         String?   // "CEO_DAY", "SALES_DAY", etc.
+  isNonWorkDay  Boolean   @default(false)
+
+  // Relations
+  user          User      @relation("WeeklyScheduleUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, moduleId, dayOfWeek])
+  @@map("weekly_schedules")
+}
+
+// Gate Submissions with file uploads
+model GateSubmission {
+  id              String    @id @default(cuid())
+  userId          String
+  courseId        String    @default("order-framework")
+  moduleName      String    // "MODULE_1", "MODULE_2", etc.
+  gateName        String    // "BASELINE_ENTRY", "TASK_INVENTORY", etc.
+  submissionData  String    // JSON data for the submission
+  fileUrl         String?
+  status          String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  submittedAt     DateTime  @default(now())
+  reviewedAt      DateTime?
+  feedback        String?
+
+  // Relations
+  user            User      @relation("GateSubmissionUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, courseId, moduleName])
+  @@map("gate_submissions")
 }

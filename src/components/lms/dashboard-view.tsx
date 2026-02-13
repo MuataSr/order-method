@@ -17,13 +17,15 @@ import {
   Play,
   ArrowRight,
   Bell,
+  Calendar,
+  Trophy,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 
 export function DashboardView() {
   const { user } = useAuthStore();
-  const { setCurrentView, setCurrentCourse } = useCourseStore();
+  const { setCurrentView, setCurrentCourse, currentView } = useCourseStore();
 
   // Fetch enrollments
   const { data: enrollments = [] } = useQuery({
@@ -42,6 +44,17 @@ export function DashboardView() {
       const res = await fetch('/api/courses');
       return res.json();
     },
+  });
+
+  // Fetch Module 1 progress
+  const { data: module1Progress } = useQuery({
+    queryKey: ['module-progress', user?.id, 'MODULE_1'],
+    queryFn: async () => {
+      const res = await fetch(`/api/modules/progress?userId=${user?.id}&moduleName=MODULE_1`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!user?.id,
   });
 
   // Stats calculation
@@ -172,6 +185,81 @@ export function DashboardView() {
         </motion.div>
       </div>
 
+      {/* Module 1 Progress Card */}
+      {module1Progress && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-500 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <Calendar className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="text-white">
+                    <h3 className="font-semibold text-lg">Module 1: Own Your Clock</h3>
+                    <p className="text-white/80 text-sm">Time Mastery for Agency Owners</p>
+                  </div>
+                </div>
+                {module1Progress.status === 'COMPLETED' && (
+                  <div className="flex items-center gap-2 bg-yellow-400 text-yellow-900 px-3 py-1.5 rounded-full text-sm font-medium">
+                    <Trophy className="h-4 w-4" />
+                    Time Master
+                  </div>
+                )}
+              </div>
+            </div>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Your Progress</span>
+                    <span className="font-medium">
+                      {(() => {
+                        const gates = typeof module1Progress.completedGates === 'string'
+                          ? JSON.parse(module1Progress.completedGates)
+                          : module1Progress.completedGates || [];
+                        return `${gates.length}/10 Gates`;
+                      })()}
+                    </span>
+                  </div>
+                  <Progress
+                    value={(() => {
+                      const gates = typeof module1Progress.completedGates === 'string'
+                        ? JSON.parse(module1Progress.completedGates)
+                        : module1Progress.completedGates || [];
+                      return (gates.length / 10) * 100;
+                    })()}
+                    className="h-2"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Current Day: <span className="font-medium">{module1Progress.currentDay}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setCurrentView('module-1')}
+                  >
+                    {module1Progress.status === 'NOT_STARTED' ? (
+                      <>Start Module</>
+                    ) : (
+                      <>
+                        Continue Learning
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Continue Learning */}
       {inProgressCourses.length > 0 && (
         <div>
@@ -186,11 +274,11 @@ export function DashboardView() {
                 <Card className="overflow-hidden cursor-pointer group hover:shadow-lg transition-shadow">
                   <div
                     className="relative aspect-video"
-                    onClick={() => handleContinueCourse(enrollment.course)}
+                    onClick={() => enrollment.course && handleContinueCourse(enrollment.course)}
                   >
                     <img
-                      src={enrollment.course.thumbnail || '/placeholder-course.jpg'}
-                      alt={enrollment.course.title}
+                      src={enrollment.course?.thumbnail || '/placeholder-course.jpg'}
+                      alt={enrollment.course?.title || 'Course'}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -200,7 +288,7 @@ export function DashboardView() {
                     </div>
                   </div>
                   <CardContent className="p-4">
-                    <h3 className="font-semibold line-clamp-1">{enrollment.course.title}</h3>
+                    <h3 className="font-semibold line-clamp-1">{enrollment.course?.title}</h3>
                     <div className="mt-3 space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">Progress</span>
