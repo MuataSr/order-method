@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1';
+export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1' | 'module-2';
 
 export interface Course {
   id: string;
@@ -173,6 +173,15 @@ export interface ModuleOneData {
   completedAt?: string;
 }
 
+// Module 2: Review What Works
+export interface ModuleTwoData {
+  currentDay: number;
+  completedGates: string[];
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  startedAt?: string;
+  completedAt?: string;
+}
+
 interface CourseState {
   // View state
   currentView: ViewMode;
@@ -214,6 +223,16 @@ interface CourseState {
   isTimeMaster: boolean;
   setIsTimeMaster: (isMaster: boolean) => void;
 
+  // Module 2 state
+  moduleTwoData: ModuleTwoData | null;
+  setModuleTwoData: (data: ModuleTwoData | null) => void;
+  currentDayModule2: number;
+  setCurrentDayModule2: (day: number) => void;
+  completedGatesModule2: string[];
+  setCompletedGatesModule2: (gates: string[]) => void;
+  isWorkflowAnalyst: boolean;
+  setIsWorkflowAnalyst: (isAnalyst: boolean) => void;
+
   // Reset
   reset: () => void;
 }
@@ -232,6 +251,10 @@ const initialState = {
   currentDay: 1,
   completedGates: [],
   isTimeMaster: false,
+  moduleTwoData: null,
+  currentDayModule2: 1,
+  completedGatesModule2: [],
+  isWorkflowAnalyst: false,
 };
 
 export const useCourseStore = create<CourseState>((set) => ({
@@ -249,5 +272,9 @@ export const useCourseStore = create<CourseState>((set) => ({
   setCurrentDay: (day) => set({ currentDay: day }),
   setCompletedGates: (gates) => set({ completedGates: gates }),
   setIsTimeMaster: (isMaster) => set({ isTimeMaster: isMaster }),
+  setModuleTwoData: (data) => set({ moduleTwoData: data }),
+  setCurrentDayModule2: (day) => set({ currentDayModule2: day }),
+  setCompletedGatesModule2: (gates) => set({ completedGatesModule2: gates }),
+  setIsWorkflowAnalyst: (isAnalyst) => set({ isWorkflowAnalyst: isAnalyst }),
   reset: () => set(initialState),
 }));

@@ -19,6 +19,7 @@ import {
   Bell,
   Calendar,
   Trophy,
+  Search,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -51,6 +52,17 @@ export function DashboardView() {
     queryKey: ['module-progress', user?.id, 'MODULE_1'],
     queryFn: async () => {
       const res = await fetch(`/api/modules/progress?userId=${user?.id}&moduleName=MODULE_1`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch Module 2 progress
+  const { data: module2Progress } = useQuery({
+    queryKey: ['module-progress', user?.id, 'MODULE_2'],
+    queryFn: async () => {
+      const res = await fetch(`/api/modules/progress?userId=${user?.id}&moduleName=MODULE_2`);
       if (!res.ok) return null;
       return res.json();
     },
@@ -245,6 +257,81 @@ export function DashboardView() {
                     onClick={() => setCurrentView('module-1')}
                   >
                     {module1Progress.status === 'NOT_STARTED' ? (
+                      <>Start Module</>
+                    ) : (
+                      <>
+                        Continue Learning
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Module 2 Progress Card */}
+      {module2Progress && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+        >
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-500 to-teal-500 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <Search className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="text-white">
+                    <h3 className="font-semibold text-lg">Module 2: Review What Works</h3>
+                    <p className="text-white/80 text-sm">Workflow Analysis & Optimization</p>
+                  </div>
+                </div>
+                {module2Progress.status === 'COMPLETED' && (
+                  <div className="flex items-center gap-2 bg-emerald-400 text-emerald-900 px-3 py-1.5 rounded-full text-sm font-medium">
+                    <Trophy className="h-4 w-4" />
+                    Workflow Analyst
+                  </div>
+                )}
+              </div>
+            </div>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Your Progress</span>
+                    <span className="font-medium">
+                      {(() => {
+                        const gates = typeof module2Progress.completedGates === 'string'
+                          ? JSON.parse(module2Progress.completedGates)
+                          : module2Progress.completedGates || [];
+                        return `${gates.length}/10 Gates`;
+                      })()}
+                    </span>
+                  </div>
+                  <Progress
+                    value={(() => {
+                      const gates = typeof module2Progress.completedGates === 'string'
+                        ? JSON.parse(module2Progress.completedGates)
+                        : module2Progress.completedGates || [];
+                      return (gates.length / 10) * 100;
+                    })()}
+                    className="h-2"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Current Day: <span className="font-medium">{module2Progress.currentDay}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setCurrentView('module-2')}
+                  >
+                    {module2Progress.status === 'NOT_STARTED' ? (
                       <>Start Module</>
                     ) : (
                       <>

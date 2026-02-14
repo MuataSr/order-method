@@ -13,6 +13,7 @@ import {
   Menu,
   Calendar,
   Lock,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,6 +24,7 @@ const navItems: { id: ViewMode; label: string; icon: React.ElementType; locked?:
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'catalog', label: 'Course Catalog', icon: BookOpen },
   { id: 'module-1', label: 'Module 1: Own Your Clock', icon: Calendar },
+  { id: 'module-2', label: 'Module 2: Review What Works', icon: Search },
   { id: 'admin', label: 'Admin Panel', icon: Settings },
 ];
 
