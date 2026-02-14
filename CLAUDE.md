@@ -45,7 +45,7 @@ The app uses a dual-state architecture:
 ### View Routing System
 
 The app uses **client-side view routing** via Zustand store, not Next.js routing:
-- Views: `dashboard`, `catalog`, `course`, `lesson`, `admin`
+- Views: `dashboard`, `catalog`, `course`, `lesson`, `admin`, `module-1`, `module-2`, `module-3`
 - Controlled by `useCourseStore` state in `course-store.ts`
 - The main `page.tsx` renders different views based on `currentView`
 
@@ -55,6 +55,8 @@ RESTful API routes in `src/app/api/`:
 - `/api/admin/*` - Admin-only endpoints
 - `/api/courses/*` - Course CRUD and enrollment
 - `/api/user/*` - User profile and authentication
+- `/api/modules/progress` - GET/POST for module progress tracking (currentPhase, completedGates, status)
+- `/api/modules/gate-submissions` - GET/POST for gate submission data
 
 ### Database Models (Prisma)
 
@@ -87,3 +89,40 @@ When adding new features, keep types in sync with Prisma schema.
 ## Database Provider
 
 Currently uses SQLite (`provider = "sqlite"` in schema.prisma). For production, update the `datasource db` provider and `DATABASE_URL` environment variable.
+
+## O.R.D.E.R. Framework Modules
+
+The LMS contains specialized modules implementing the O.R.D.E.R. framework:
+
+### Module Structure
+- `src/components/lms/module-1/` - "Owning Your Clock" - Time Management (10-day course)
+- `src/components/lms/module-2/` - "Review What Works" - Workflow Analysis
+- `src/components/lms/module-3/` - "Develop Systems" - Systems Architecture (4 phases, 15 gates)
+
+### Module 3 Architecture
+Module 3 has a more complex structure than other modules:
+- `module-3-view.tsx` - Main entry point with overview/phase view toggle
+- `module-3-phase-view.tsx` - Phase-specific content rendering
+- `phase-content/` - Sub-components for phase details (overview, gate list, gate content, navigation)
+- `hooks/` - Custom React hooks (e.g., `use-gate-submission.ts`)
+- `constants.ts` - Module metadata, phases, gates, animation settings
+- `types.ts` - TypeScript interfaces specific to Module 3
+- `utils.ts` - Helper functions for progress calculation, phase completion checks
+
+### Module-Specific API Routes
+- `/api/modules/progress` - GET/POST for module progress tracking (currentPhase, completedGates, status)
+- `/api/modules/gate-submissions` - GET/POST for gate submission data
+- Both routes accept `userId`, `courseId`, `moduleName` parameters
+
+### Badge System
+Each module awards a completion badge:
+- Module 1: "Time Master" - after completing all gates
+- Module 2: "Workflow Analyst" - after completing all gates
+- Module 3: "Systems Architect" - after completing all 15 gates across 4 phases
+
+### Module Progress State
+Store fields for tracking module progress:
+- `moduleOneData`, `moduleTwoData`, `moduleThreeData` - Progress data objects
+- `currentDay`, `currentDayModule2`, `currentPhaseModule3` - Current position in module
+- `completedGates`, `completedGatesModule2`, `completedGatesModule3` - Array of completed gate names
+- `systemsPlaybook` - Module 3: Array of documented workflows with `{workflowTitle, steps, owner, metrics}`

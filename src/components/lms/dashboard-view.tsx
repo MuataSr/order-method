@@ -20,6 +20,7 @@ import {
   Calendar,
   Trophy,
   Search,
+  Building2,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -63,6 +64,17 @@ export function DashboardView() {
     queryKey: ['module-progress', user?.id, 'MODULE_2'],
     queryFn: async () => {
       const res = await fetch(`/api/modules/progress?userId=${user?.id}&moduleName=MODULE_2`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch Module 3 progress
+  const { data: module3Progress } = useQuery({
+    queryKey: ['module-progress', user?.id, 'MODULE_3'],
+    queryFn: async () => {
+      const res = await fetch(`/api/modules/progress?userId=${user?.id}&moduleName=MODULE_3`);
       if (!res.ok) return null;
       return res.json();
     },
@@ -332,6 +344,81 @@ export function DashboardView() {
                     onClick={() => setCurrentView('module-2')}
                   >
                     {module2Progress.status === 'NOT_STARTED' ? (
+                      <>Start Module</>
+                    ) : (
+                      <>
+                        Continue Learning
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Module 3 Progress Card */}
+      {module3Progress && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <Building2 className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="text-white">
+                    <h3 className="font-semibold text-lg">Module 3: Develop Systems</h3>
+                    <p className="text-white/80 text-sm">Build Scalable Systems & Processes</p>
+                  </div>
+                </div>
+                {module3Progress.status === 'COMPLETED' && (
+                  <div className="flex items-center gap-2 bg-amber-400 text-amber-900 px-3 py-1.5 rounded-full text-sm font-medium">
+                    <Building2 className="h-4 w-4" />
+                    Systems Architect
+                  </div>
+                )}
+              </div>
+            </div>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Your Progress</span>
+                    <span className="font-medium">
+                      {(() => {
+                        const gates = typeof module3Progress.completedGates === 'string'
+                          ? JSON.parse(module3Progress.completedGates)
+                          : module3Progress.completedGates || [];
+                        return `${gates.length}/15 Gates`;
+                      })()}
+                    </span>
+                  </div>
+                  <Progress
+                    value={(() => {
+                      const gates = typeof module3Progress.completedGates === 'string'
+                        ? JSON.parse(module3Progress.completedGates)
+                        : module3Progress.completedGates || [];
+                      return (gates.length / 15) * 100;
+                    })()}
+                    className="h-2"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Current Phase: <span className="font-medium">{module3Progress.currentPhase}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setCurrentView('module-3')}
+                  >
+                    {module3Progress.status === 'NOT_STARTED' ? (
                       <>Start Module</>
                     ) : (
                       <>

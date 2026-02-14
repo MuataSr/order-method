@@ -11,6 +11,7 @@ import { CourseView } from '@/components/lms/course-view';
 import { AdminView } from '@/components/lms/admin-view';
 import { ModuleOneView } from '@/components/lms/module-1/module-1-view';
 import { ModuleTwoView } from '@/components/lms/module-2/module-2-view';
+import { ModuleThreeView } from '@/components/lms/module-3/module-3-view';
 import { cn } from '@/lib/utils';
 
 export default function Home() {
@@ -46,6 +47,8 @@ export default function Home() {
         return <ModuleOneView />;
       case 'module-2':
         return <ModuleTwoView />;
+      case 'module-3':
+        return <ModuleThreeView />;
       case 'admin':
         return <AdminView />;
       default:

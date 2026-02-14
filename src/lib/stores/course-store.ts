@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1' | 'module-2';
+export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1' | 'module-2' | 'module-3';
 
 export interface Course {
   id: string;
@@ -182,6 +182,23 @@ export interface ModuleTwoData {
   completedAt?: string;
 }
 
+// Module 3: Develop Systems
+export interface SystemsPlaybookWorkflow {
+  workflowTitle: string;
+  steps: string[];
+  owner: string;
+  metrics: string;
+}
+
+export interface ModuleThreeData {
+  currentPhase: number;
+  completedGatesModule3: string[];
+  systemsPlaybook: SystemsPlaybookWorkflow[];
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  startedAt?: string;
+  completedAt?: string;
+}
+
 interface CourseState {
   // View state
   currentView: ViewMode;
@@ -233,6 +250,18 @@ interface CourseState {
   isWorkflowAnalyst: boolean;
   setIsWorkflowAnalyst: (isAnalyst: boolean) => void;
 
+  // Module 3 state
+  moduleThreeData: ModuleThreeData | null;
+  setModuleThreeData: (data: ModuleThreeData | null) => void;
+  currentPhaseModule3: number;
+  setCurrentPhaseModule3: (phase: number) => void;
+  completedGatesModule3: string[];
+  setCompletedGatesModule3: (gates: string[]) => void;
+  systemsPlaybook: SystemsPlaybookWorkflow[];
+  setSystemsPlaybook: (playbook: SystemsPlaybookWorkflow[]) => void;
+  isSystemsArchitect: boolean;
+  setIsSystemsArchitect: (isArchitect: boolean) => void;
+
   // Reset
   reset: () => void;
 }
@@ -255,6 +284,11 @@ const initialState = {
   currentDayModule2: 1,
   completedGatesModule2: [],
   isWorkflowAnalyst: false,
+  moduleThreeData: null,
+  currentPhaseModule3: 1,
+  completedGatesModule3: [],
+  systemsPlaybook: [],
+  isSystemsArchitect: false,
 };
 
 export const useCourseStore = create<CourseState>((set) => ({
@@ -276,5 +310,10 @@ export const useCourseStore = create<CourseState>((set) => ({
   setCurrentDayModule2: (day) => set({ currentDayModule2: day }),
   setCompletedGatesModule2: (gates) => set({ completedGatesModule2: gates }),
   setIsWorkflowAnalyst: (isAnalyst) => set({ isWorkflowAnalyst: isAnalyst }),
+  setModuleThreeData: (data) => set({ moduleThreeData: data }),
+  setCurrentPhaseModule3: (phase) => set({ currentPhaseModule3: phase }),
+  setCompletedGatesModule3: (gates) => set({ completedGatesModule3: gates }),
+  setSystemsPlaybook: (playbook) => set({ systemsPlaybook: playbook }),
+  setIsSystemsArchitect: (isArchitect) => set({ isSystemsArchitect: isArchitect }),
   reset: () => set(initialState),
 }));
