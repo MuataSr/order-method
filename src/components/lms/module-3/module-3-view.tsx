@@ -192,55 +192,52 @@ export function ModuleThreeView() {
         throw new Error(`Failed to submit gate: ${submitRes.statusText}`);
       }
 
-      // Calculate new state using functional updates to prevent race conditions
-      setCompletedGatesModule3(prev => {
-        const newCompletedGates = [...prev, gateName];
+      // Calculate new state
+      const newCompletedGates = [...completedGatesModule3, gateName];
 
-        // Calculate new phase based on completed gates
-        const phase1Complete = isPhaseComplete(PHASES[0].gates, newCompletedGates);
-        const phase2Complete = isPhaseComplete(PHASES[1].gates, newCompletedGates);
-        const phase3Complete = isPhaseComplete(PHASES[2].gates, newCompletedGates);
+      // Calculate new phase based on completed gates
+      const phase1Complete = isPhaseComplete(PHASES[0].gates, newCompletedGates);
+      const phase2Complete = isPhaseComplete(PHASES[1].gates, newCompletedGates);
+      const phase3Complete = isPhaseComplete(PHASES[2].gates, newCompletedGates);
 
-        let newPhase = currentPhaseModule3;
-        if (phase3Complete) {
-          newPhase = 4;
-        } else if (phase2Complete) {
-          newPhase = 3;
-        } else if (phase1Complete) {
-          newPhase = 2;
-        }
+      let newPhase = currentPhaseModule3;
+      if (phase3Complete) {
+        newPhase = 4;
+      } else if (phase2Complete) {
+        newPhase = 3;
+      } else if (phase1Complete) {
+        newPhase = 2;
+      }
 
-        // Update progress API
-        fetch('/api/modules/progress', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: user.id,
-            courseId: 'order-framework',
-            moduleName: 'MODULE_3',
-            currentPhase: newPhase,
-            completedGates: JSON.stringify(newCompletedGates),
-            status: newCompletedGates.length >= TOTAL_GATES_MODULE_3 ? 'COMPLETED' : 'IN_PROGRESS',
-          }),
-        }).catch(err => {
-          console.error('Failed to update progress:', err);
-          // Non-critical error, don't throw
-        });
-
-        setCurrentPhaseModule3(newPhase);
-
-        // Check for Systems Architect badge
-        if (newCompletedGates.length >= GATES_FOR_SYSTEMS_ARCHITECT && !isSystemsArchitect) {
-          setIsSystemsArchitect(true);
-        }
-
-        // Update systems playbook if workflow data included
-        if (data?.workflow) {
-          setSystemsPlaybook(prev => [...prev, data.workflow]);
-        }
-
-        return newCompletedGates;
+      // Update progress API
+      fetch('/api/modules/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          courseId: 'order-framework',
+          moduleName: 'MODULE_3',
+          currentPhase: newPhase,
+          completedGates: JSON.stringify(newCompletedGates),
+          status: newCompletedGates.length >= TOTAL_GATES_MODULE_3 ? 'COMPLETED' : 'IN_PROGRESS',
+        }),
+      }).catch(err => {
+        console.error('Failed to update progress:', err);
       });
+
+      // Update state
+      setCompletedGatesModule3(newCompletedGates);
+      setCurrentPhaseModule3(newPhase);
+
+      // Check for Systems Architect badge
+      if (newCompletedGates.length >= GATES_FOR_SYSTEMS_ARCHITECT && !isSystemsArchitect) {
+        setIsSystemsArchitect(true);
+      }
+
+      // Update systems playbook if workflow data included
+      if (data?.workflow) {
+        setSystemsPlaybook([...systemsPlaybook, data.workflow]);
+      }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
       setSubmitError(errorMsg);
@@ -384,7 +381,7 @@ export function ModuleThreeView() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-white/20 rounded-lg">
-                      <MODULE_3_META.icon className="h-8 w-8" />
+                      <Building2 className="h-8 w-8" />
                     </div>
                     <div>
                       <Badge variant="secondary" className="mb-2">Module 3 of 5</Badge>

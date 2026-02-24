@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1' | 'module-2' | 'module-3';
+export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin' | 'module-1' | 'module-2' | 'module-3' | 'module-4';
 
 export interface Course {
   id: string;
@@ -199,6 +199,49 @@ export interface ModuleThreeData {
   completedAt?: string;
 }
 
+export interface ModuleFourData {
+  currentPhase: number;
+  completedGates: string[];
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  startedAt?: string;
+  completedAt?: string;
+  visionStatement?: string;
+  rolesTable?: Array<{
+    systemName: string;
+    primaryOwner: string;
+    backupOwner: string;
+    acknowledged: boolean;
+  }>;
+  decisionMatrix?: Array<{
+    decisionType: string;
+    teamCanDecide: string;
+    mustEscalate: boolean;
+  }>;
+}
+
+export interface ModuleFiveData {
+  currentPhase: number;
+  completedGates: string[];
+  status?: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED';
+  startedAt?: string;
+  completedAt?: string;
+  founderValueAudit?: {
+    onlyYouTasks: string[];
+    delegatedTasks: string[];
+  };
+  themedSchedule?: Array<{
+    day: string;
+    theme: string;
+    isOffDay: boolean;
+  }>;
+  founderDashboard?: Array<{
+    name: string;
+    category: string;
+    targetValue: string;
+    dataSource: string;
+  }>;
+}
+
 interface CourseState {
   // View state
   currentView: ViewMode;
@@ -262,6 +305,26 @@ interface CourseState {
   isSystemsArchitect: boolean;
   setIsSystemsArchitect: (isArchitect: boolean) => void;
 
+  // Module 4 state
+  moduleFourData: ModuleFourData | null;
+  setModuleFourData: (data: ModuleFourData | null) => void;
+  currentPhaseModule4: number;
+  setCurrentPhaseModule4: (phase: number) => void;
+  completedGatesModule4: string[];
+  setCompletedGatesModule4: (gates: string[]) => void;
+  isTeamChampion: boolean;
+  setIsTeamChampion: (isChampion: boolean) => void;
+
+  // Module 5 state
+  moduleFiveData: ModuleFiveData | null;
+  setModuleFiveData: (data: ModuleFiveData | null) => void;
+  currentPhaseModule5: number;
+  setCurrentPhaseModule5: (phase: number) => void;
+  completedGatesModule5: string[];
+  setCompletedGatesModule5: (gates: string[]) => void;
+  isFreedomFounder: boolean;
+  setIsFreedomFounder: (isFounder: boolean) => void;
+
   // Reset
   reset: () => void;
 }
@@ -289,6 +352,14 @@ const initialState = {
   completedGatesModule3: [],
   systemsPlaybook: [],
   isSystemsArchitect: false,
+  moduleFourData: null,
+  currentPhaseModule4: 1,
+  completedGatesModule4: [],
+  isTeamChampion: false,
+  moduleFiveData: null,
+  currentPhaseModule5: 1,
+  completedGatesModule5: [],
+  isFreedomFounder: false,
 };
 
 export const useCourseStore = create<CourseState>((set) => ({
@@ -315,5 +386,13 @@ export const useCourseStore = create<CourseState>((set) => ({
   setCompletedGatesModule3: (gates) => set({ completedGatesModule3: gates }),
   setSystemsPlaybook: (playbook) => set({ systemsPlaybook: playbook }),
   setIsSystemsArchitect: (isArchitect) => set({ isSystemsArchitect: isArchitect }),
+  setModuleFourData: (data) => set({ moduleFourData: data }),
+  setCurrentPhaseModule4: (phase) => set({ currentPhaseModule4: phase }),
+  setCompletedGatesModule4: (gates) => set({ completedGatesModule4: gates }),
+  setIsTeamChampion: (isChampion) => set({ isTeamChampion: isChampion }),
+  setModuleFiveData: (data) => set({ moduleFiveData: data }),
+  setCurrentPhaseModule5: (phase) => set({ currentPhaseModule5: phase }),
+  setCompletedGatesModule5: (gates) => set({ completedGatesModule5: gates }),
+  setIsFreedomFounder: (isFounder) => set({ isFreedomFounder: isFounder }),
   reset: () => set(initialState),
 }));

@@ -1,11 +1,21 @@
 import { db } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-// Get current user (simulated - returns student user for demo)
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const user = await db.user.findUnique({
-      where: { email: 'student@lms.com' },
+      where: { id: session.user.id },
       select: {
         id: true,
         email: true,

@@ -1,0 +1,522 @@
+'use client';
+
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { useCourseStore } from '@/lib/stores/course-store';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Trophy,
+  Target,
+  ArrowRight,
+  CheckCircle2,
+  Star,
+  Loader2,
+  Lock,
+  Zap,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  MODULE_5_META,
+  PHASES_MODULE_5,
+  TOTAL_GATES_MODULE_5,
+  ANIMATION_DURATION,
+  ANIMATION_STAGGER,
+  BADGE_ANIMATION_DURATION,
+} from './constants';
+import { GateSubmissionData } from './types';
+import {
+  parseCompletedGates,
+  isPhaseComplete,
+  calculatePhaseProgress,
+  isPhaseUnlocked,
+  getPhaseGatesCompleted,
+} from './utils';
+
+interface ModuleFiveViewProps {
+  phaseViewComponent: React.ComponentType<{
+    phase: number;
+    completedGates: string[];
+    onCompleteGate: (gateName: string, data?: GateSubmissionData) => Promise<void>;
+    onPhaseChange: (phase: number) => void;
+    isFreedomFounder: boolean;
+    phase1Complete: boolean;
+    phase2Complete: boolean;
+    phase3Complete: boolean;
+  }>;
+}
+
+export function ModuleFiveView({ phaseViewComponent: PhaseView }: ModuleFiveViewProps) {
+  const { user } = useAuthStore();
+  const {
+    moduleFiveData,
+    setModuleFiveData,
+    currentPhaseModule5,
+    setCurrentPhaseModule5,
+    completedGatesModule5,
+    setCompletedGatesModule5,
+    isFreedomFounder,
+    setIsFreedomFounder,
+  } = useCourseStore();
+
+  const [activeView, setActiveView] = useState<'overview' | 'phase'>('overview');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { data: moduleProgress, isLoading } = useQuery({
+    queryKey: ['module-progress', user?.id, 'MODULE_5'],
+    queryFn: async () => {
+      if (!user?.id) {
+        throw new Error('User ID is required');
+      }
+      const res = await fetch(`/api/modules/progress?userId=${user.id}&moduleName=MODULE_5`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          return {
+            currentPhase: 1,
+            completedGates: [],
+            status: 'NOT_STARTED',
+          };
+        }
+        throw new Error(`Failed to fetch progress: ${res.statusText}`);
+      }
+      return res.json();
+    },
+    enabled: !!user?.id,
+    retry: 1,
+  });
+
+  const parsedGates = useMemo(() => {
+    if (!moduleProgress?.completedGates) return [];
+    return parseCompletedGates(moduleProgress.completedGates);
+  }, [moduleProgress?.completedGates]);
+
+  useEffect(() => {
+    if (parsedGates.length > 0) {
+      setCompletedGatesModule5(parsedGates);
+    }
+  }, [parsedGates, setCompletedGatesModule5]);
+
+  useEffect(() => {
+    if (moduleProgress) {
+      setCurrentPhaseModule5(moduleProgress.currentPhase || 1);
+      setModuleFiveData(moduleProgress);
+
+      if (parsedGates.length >= TOTAL_GATES_MODULE_5) {
+        setIsFreedomFounder(true);
+      }
+    }
+  }, [moduleProgress, setCurrentPhaseModule5, setModuleFiveData, setIsFreedomFounder, parsedGates.length]);
+
+  const handleCompleteGate = useCallback(async (gateName: string, data?: GateSubmissionData) => {
+    if (!user?.id) return;
+
+    setIsSubmitting(true);
+    try {
+      const submitRes = await fetch('/api/modules/gate-submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          courseId: 'order-framework',
+          moduleName: 'MODULE_5',
+          gateName,
+          submissionData: JSON.stringify(data || {}),
+        }),
+      });
+
+      if (!submitRes.ok) {
+        throw new Error(`Failed to submit gate: ${submitRes.statusText}`);
+      }
+
+      const newCompletedGates = [...completedGatesModule5, gateName];
+
+      const phase1Complete = isPhaseComplete(PHASES_MODULE_5[0].gates, newCompletedGates);
+      const phase2Complete = isPhaseComplete(PHASES_MODULE_5[1].gates, newCompletedGates);
+      const phase3Complete = isPhaseComplete(PHASES_MODULE_5[2].gates, newCompletedGates);
+
+      let newPhase = currentPhaseModule5;
+      if (phase3Complete) {
+        newPhase = 4;
+      } else if (phase2Complete) {
+        newPhase = 3;
+      } else if (phase1Complete) {
+        newPhase = 2;
+      }
+
+      await fetch('/api/modules/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          courseId: 'order-framework',
+          moduleName: 'MODULE_5',
+          currentPhase: newPhase,
+          completedGates: JSON.stringify(newCompletedGates),
+          status: newCompletedGates.length >= TOTAL_GATES_MODULE_5 ? 'COMPLETED' : 'IN_PROGRESS',
+        }),
+      });
+
+      setCompletedGatesModule5(newCompletedGates);
+      setCurrentPhaseModule5(newPhase);
+
+      if (newCompletedGates.length >= TOTAL_GATES_MODULE_5 && !isFreedomFounder) {
+        setIsFreedomFounder(true);
+      }
+    } catch (error) {
+      console.error('Failed to complete gate:', error);
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [user?.id, currentPhaseModule5, isFreedomFounder, setCompletedGatesModule5, setCurrentPhaseModule5, setIsFreedomFounder, completedGatesModule5]);
+
+  const handlePhaseClick = useCallback((phaseNumber: number) => {
+    if (phaseNumber === 1) {
+      setCurrentPhaseModule5(phaseNumber);
+      setActiveView('phase');
+      return;
+    }
+
+    const prevPhase = PHASES_MODULE_5[phaseNumber - 2];
+    const prevPhaseComplete = isPhaseComplete(prevPhase.gates, completedGatesModule5);
+
+    if (prevPhaseComplete) {
+      setCurrentPhaseModule5(phaseNumber);
+      setActiveView('phase');
+    }
+  }, [completedGatesModule5, setCurrentPhaseModule5]);
+
+  const handleStartModule = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      await fetch('/api/modules/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          courseId: 'order-framework',
+          moduleName: 'MODULE_5',
+          currentPhase: 1,
+          completedGates: '[]',
+          status: 'IN_PROGRESS',
+        }),
+      });
+      setActiveView('phase');
+    } catch (error) {
+      console.error('Failed to start module:', error);
+    }
+  }, [user?.id]);
+
+  const progressPercentage = useMemo(
+    () => calculatePhaseProgress(completedGatesModule5.length, TOTAL_GATES_MODULE_5),
+    [completedGatesModule5]
+  );
+
+  const isStarted = useMemo(
+    () => completedGatesModule5.length > 0 || moduleFiveData?.status === 'IN_PROGRESS',
+    [completedGatesModule5, moduleFiveData?.status]
+  );
+
+  const isCompleted = useMemo(
+    () => completedGatesModule5.length >= TOTAL_GATES_MODULE_5,
+    [completedGatesModule5]
+  );
+
+  const phase1Complete = useMemo(
+    () => isPhaseComplete(PHASES_MODULE_5[0].gates, completedGatesModule5),
+    [completedGatesModule5]
+  );
+
+  const phase2Complete = useMemo(
+    () => isPhaseComplete(PHASES_MODULE_5[1].gates, completedGatesModule5),
+    [completedGatesModule5]
+  );
+
+  const phase3Complete = useMemo(
+    () => isPhaseComplete(PHASES_MODULE_5[2].gates, completedGatesModule5),
+    [completedGatesModule5]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      {activeView === 'overview' ? (
+        <motion.div
+          key="overview"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="space-y-6"
+        >
+          <Card className="overflow-hidden">
+            <div className={cn(
+              'bg-gradient-to-r p-8 text-white',
+              MODULE_5_META.color
+            )}>
+              <div className="flex items-start justify-between">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-white/20 rounded-lg">
+                      <MODULE_5_META.icon className="h-8 w-8" />
+                    </div>
+                    <div>
+                      <Badge variant="secondary" className="mb-2">Module 5 of 5 - Final Module</Badge>
+                      <h1 className="text-3xl font-bold">{MODULE_5_META.title}</h1>
+                    </div>
+                  </div>
+                  <p className="text-xl text-white/90">{MODULE_5_META.subtitle}</p>
+                  <p className="text-white/80 max-w-2xl">{MODULE_5_META.description}</p>
+
+                  {!isStarted && (
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      onClick={handleStartModule}
+                      className="mt-4"
+                    >
+                      Start Final Module
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  )}
+
+                  {isStarted && (
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      onClick={() => setActiveView('phase')}
+                      className="mt-4"
+                    >
+                      Continue Learning
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  )}
+                </div>
+
+                {isFreedomFounder && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="hidden lg:block"
+                  >
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-emerald-400 blur-2xl opacity-50" />
+                      <div className="relative bg-emerald-400 text-emerald-900 p-6 rounded-2xl">
+                        <Trophy className="h-16 w-16 mb-2" />
+                        <div className="text-lg font-bold">Freedom Founder</div>
+                        <div className="text-sm">Badge Earned!</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Your Progress</CardTitle>
+                  <CardDescription>
+                    {isCompleted
+                      ? 'Congratulations! You have completed the O.R.D.E.R. Framework!'
+                      : `Complete all ${TOTAL_GATES_MODULE_5} gates across 4 phases to earn the Freedom Founder badge`}
+                  </CardDescription>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold">{completedGatesModule5.length}/{TOTAL_GATES_MODULE_5}</div>
+                  <div className="text-sm text-muted-foreground">Gates Completed</div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Progress value={progressPercentage} className="h-3" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {PHASES_MODULE_5.map((phase, index) => {
+                  const isUnlocked = isPhaseUnlocked(phase.number, completedGatesModule5);
+                  const phaseGatesCompleted = getPhaseGatesCompleted(phase.number, completedGatesModule5);
+                  const thisPhaseComplete = phaseGatesCompleted === phase.gateCount;
+
+                  return (
+                    <motion.div
+                      key={phase.number}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{
+                        delay: index * ANIMATION_STAGGER,
+                        layout: { duration: ANIMATION_DURATION }
+                      }}
+                      layout
+                    >
+                      <button
+                        onClick={() => handlePhaseClick(phase.number)}
+                        disabled={!isUnlocked}
+                        className={cn(
+                          'w-full p-4 rounded-lg border-2 transition-all text-left',
+                          thisPhaseComplete && 'border-green-500 bg-green-500/10',
+                          !thisPhaseComplete && isUnlocked && 'border-primary bg-primary/10',
+                          !isUnlocked && 'border-muted bg-muted opacity-50 cursor-not-allowed'
+                        )}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium">Phase {phase.number}</span>
+                            {thisPhaseComplete ? (
+                              <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            ) : !isUnlocked ? (
+                              <Lock className="h-3 w-3" />
+                            ) : (
+                              <Target className="h-3 w-3" />
+                            )}
+                          </div>
+                          <Badge variant={thisPhaseComplete ? 'default' : 'secondary'} className="text-xs">
+                            {phase.gateCount} gates
+                          </Badge>
+                        </div>
+                        <h3 className="font-semibold mb-1">{phase.name}</h3>
+                        <p className="text-xs text-muted-foreground mb-2">{phase.days}</p>
+                        <p className="text-xs text-muted-foreground">{phase.description}</p>
+                        <div className="mt-2">
+                          <Progress value={(phaseGatesCompleted / phase.gateCount) * 100} className="h-1" />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {phaseGatesCompleted}/{phase.gateCount} gates
+                          </p>
+                        </div>
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>What You'll Achieve</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="p-4 bg-emerald-500/10 rounded-lg">
+                  <Zap className="h-8 w-8 text-emerald-500 mb-2" />
+                  <h3 className="font-semibold mb-1">Extraction</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Successfully removed from daily operations
+                  </p>
+                </div>
+                <div className="p-4 bg-teal-500/10 rounded-lg">
+                  <Trophy className="h-8 w-8 text-teal-500 mb-2" />
+                  <h3 className="font-semibold mb-1">Freedom</h3>
+                  <p className="text-sm text-muted-foreground">
+                    4-day work week established and tested
+                  </p>
+                </div>
+                <div className="p-4 bg-cyan-500/10 rounded-lg">
+                  <Target className="h-8 w-8 text-cyan-500 mb-2" />
+                  <h3 className="font-semibold mb-1">Roadmap</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Clear path to 2-day work week defined
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={cn(
+            'border-2',
+            isFreedomFounder ? 'border-emerald-500 bg-emerald-500/5' : 'border-dashed'
+          )}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  'p-4 rounded-lg',
+                  isFreedomFounder ? 'bg-emerald-500/20' : 'bg-muted'
+                )}>
+                  <Trophy className={cn(
+                    'h-10 w-10',
+                    isFreedomFounder ? 'text-emerald-500' : 'text-muted-foreground'
+                  )} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg">
+                    {isFreedomFounder ? 'Freedom Founder Badge Earned!' : 'Freedom Founder Badge'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {isFreedomFounder
+                      ? 'You have successfully extracted yourself from daily operations. Display your badge with pride!'
+                      : `Complete all ${TOTAL_GATES_MODULE_5} gates across all 4 phases to earn the Freedom Founder badge and unlock your O.R.D.E.R. Business Mastery certificate.`}
+                  </p>
+                </div>
+                {isFreedomFounder && (
+                  <motion.div
+                    initial={{ rotate: -20, scale: 0 }}
+                    animate={{ rotate: 0, scale: 1 }}
+                    transition={{
+                      repeat: Infinity,
+                      repeatType: 'reverse',
+                      duration: BADGE_ANIMATION_DURATION,
+                      ease: 'easeInOut'
+                    }}
+                  >
+                    <Star className="h-8 w-8 text-emerald-500 fill-emerald-500" />
+                  </motion.div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="phase"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+        >
+          <div className="mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => setActiveView('overview')}
+              className="mb-4"
+            >
+              <ArrowRight className="mr-2 h-4 w-4 rotate-180" />
+              Back to Overview
+            </Button>
+          </div>
+
+          <PhaseView
+            phase={currentPhaseModule5}
+            completedGates={completedGatesModule5}
+            onCompleteGate={handleCompleteGate}
+            onPhaseChange={setCurrentPhaseModule5}
+            isFreedomFounder={isFreedomFounder}
+            phase1Complete={phase1Complete}
+            phase2Complete={phase2Complete}
+            phase3Complete={phase3Complete}
+          />
+
+          {isSubmitting && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-background p-6 rounded-lg">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="mt-2 text-sm">Submitting gate...</p>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

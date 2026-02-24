@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user progress for this lesson
-    let progress = null;
+    let progress: Awaited<ReturnType<typeof db.lessonProgress.findUnique>> = null;
     if (userId) {
       progress = await db.lessonProgress.findUnique({
         where: {

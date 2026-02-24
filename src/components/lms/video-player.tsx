@@ -63,6 +63,7 @@ export function VideoPlayer({ videoUrl, title, onComplete }: VideoPlayerProps) {
           size="sm"
           variant="secondary"
           className="gap-1"
+          aria-label="Open video in new tab"
           onClick={() => window.open(videoUrl, '_blank')}
         >
           <ExternalLink className="w-4 h-4" />

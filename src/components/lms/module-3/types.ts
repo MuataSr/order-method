@@ -114,7 +114,7 @@ export interface PhaseDefinition {
  * Props for GateListView component
  */
 export interface GateListViewProps {
-  gates: PhaseGate[];
+  gates: readonly PhaseGate[];
   completedGates: string[];
   onSelectGate: (index: number) => void;
 }

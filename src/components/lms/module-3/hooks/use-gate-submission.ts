@@ -97,62 +97,53 @@ export function useGateSubmission(): UseGateSubmissionReturn {
           throw new Error(`Failed to submit gate: ${submitRes.statusText}`);
         }
 
-        // Calculate new state using functional updates
-        setCompletedGatesModule3(prev => {
-          const newCompletedGates = [...prev, gateName];
+        const newCompletedGates = [...completedGatesModule3, gateName];
 
-          // Calculate new phase based on completed gates
-          const phase1Complete = PHASES[0].gates.every(g =>
-            newCompletedGates.includes(g)
-          );
-          const phase2Complete = PHASES[1].gates.every(g =>
-            newCompletedGates.includes(g)
-          );
-          const phase3Complete = PHASES[2].gates.every(g =>
-            newCompletedGates.includes(g)
-          );
+        const phase1Complete = PHASES[0].gates.every(g =>
+          newCompletedGates.includes(g)
+        );
+        const phase2Complete = PHASES[1].gates.every(g =>
+          newCompletedGates.includes(g)
+        );
+        const phase3Complete = PHASES[2].gates.every(g =>
+          newCompletedGates.includes(g)
+        );
 
-          let newPhase = currentPhaseModule3;
-          if (phase3Complete) {
-            newPhase = 4;
-          } else if (phase2Complete) {
-            newPhase = 3;
-          } else if (phase1Complete) {
-            newPhase = 2;
-          }
+        let newPhase = currentPhaseModule3;
+        if (phase3Complete) {
+          newPhase = 4;
+        } else if (phase2Complete) {
+          newPhase = 3;
+        } else if (phase1Complete) {
+          newPhase = 2;
+        }
 
-          // Update progress API
-          fetch('/api/modules/progress', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              userId: user.id,
-              courseId: 'order-framework',
-              moduleName: 'MODULE_3',
-              currentPhase: newPhase,
-              completedGates: JSON.stringify(newCompletedGates),
-              status:
-                newCompletedGates.length >= 15 ? 'COMPLETED' : 'IN_PROGRESS',
-            }),
-          }).catch(err => {
-            console.error('Failed to update progress:', err);
-            // Non-critical error, don't throw
-          });
-
-          setCurrentPhaseModule3(newPhase);
-
-          // Check for Systems Architect badge
-          if (newCompletedGates.length >= 15 && !isSystemsArchitect) {
-            setIsSystemsArchitect(true);
-          }
-
-          // Update systems playbook if workflow data included
-          if (data?.workflow) {
-            setSystemsPlaybook(prev => [...prev, data.workflow]);
-          }
-
-          return newCompletedGates;
+        fetch('/api/modules/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id,
+            courseId: 'order-framework',
+            moduleName: 'MODULE_3',
+            currentPhase: newPhase,
+            completedGates: JSON.stringify(newCompletedGates),
+            status:
+              newCompletedGates.length >= 15 ? 'COMPLETED' : 'IN_PROGRESS',
+          }),
+        }).catch(err => {
+          console.error('Failed to update progress:', err);
         });
+
+        setCompletedGatesModule3(newCompletedGates);
+        setCurrentPhaseModule3(newPhase);
+
+        if (newCompletedGates.length >= 15 && !isSystemsArchitect) {
+          setIsSystemsArchitect(true);
+        }
+
+        if (data?.workflow) {
+          setSystemsPlaybook([...systemsPlaybook, data.workflow]);
+        }
       } catch (err) {
         const errorMsg =
           err instanceof Error ? err.message : 'Unknown error occurred';
@@ -165,8 +156,10 @@ export function useGateSubmission(): UseGateSubmissionReturn {
     },
     [
       user?.id,
+      completedGatesModule3,
       currentPhaseModule3,
       isSystemsArchitect,
+      systemsPlaybook,
       setCompletedGatesModule3,
       setCurrentPhaseModule3,
       setIsSystemsArchitect,

@@ -1,15 +1,20 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create demo users
+  const adminPassword = await bcrypt.hash('admin123', 12);
+  const instructorPassword = await bcrypt.hash('instructor123', 12);
+  const studentPassword = await bcrypt.hash('student123', 12);
+
   const instructor = await prisma.user.upsert({
     where: { email: 'instructor@lms.com' },
     update: {},
     create: {
       email: 'instructor@lms.com',
       name: 'Dr. Sarah Johnson',
+      password: instructorPassword,
       role: 'INSTRUCTOR',
       bio: 'Expert in web development and computer science with 10+ years of teaching experience.',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=sarah',
@@ -22,6 +27,7 @@ async function main() {
     create: {
       email: 'student@lms.com',
       name: 'Alex Chen',
+      password: studentPassword,
       role: 'STUDENT',
       bio: 'Aspiring full-stack developer',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alex',
@@ -34,12 +40,16 @@ async function main() {
     create: {
       email: 'admin@lms.com',
       name: 'Admin User',
+      password: adminPassword,
       role: 'ADMIN',
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
     },
   });
 
-  console.log('Created users:', { instructor: instructor.id, student: student.id, admin: admin.id });
+  console.log('Created users:');
+  console.log('  - Admin: admin@lms.com / admin123');
+  console.log('  - Instructor: instructor@lms.com / instructor123');
+  console.log('  - Student: student@lms.com / student123');
 
   // Create courses
   const course1 = await prisma.course.create({

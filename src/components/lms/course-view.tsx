@@ -1,6 +1,8 @@
 'use client';
 
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useCourseStore, Module, Lesson, LessonProgress } from '@/lib/stores/course-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { ModuleSidebar } from './module-sidebar';
@@ -24,8 +26,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
 export function CourseView() {
-  const { currentCourse, setCurrentView, setCurrentLesson, currentLesson } = useCourseStore();
+  const { currentCourse, setCurrentLesson, currentLesson } = useCourseStore();
   const { user } = useAuthStore();
+  const router = useRouter();
   const [showLesson, setShowLesson] = useState(false);
 
   // Fetch course details
@@ -148,9 +151,9 @@ export function CourseView() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Course not found</p>
-        <Button onClick={() => setCurrentView('catalog')} className="mt-4">
-          Browse Courses
-        </Button>
+        <Link href="/catalog">
+          <Button className="mt-4">Browse Courses</Button>
+        </Link>
       </div>
     );
   }
@@ -224,15 +227,16 @@ export function CourseView() {
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setCurrentView('catalog')}
-                    className="mb-4"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Catalog
-                  </Button>
+                  <Link href="/catalog">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mb-4"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back to Catalog
+                    </Button>
+                  </Link>
 
                   <div className="flex flex-col md:flex-row md:items-end gap-4">
                     <div className="flex-1">

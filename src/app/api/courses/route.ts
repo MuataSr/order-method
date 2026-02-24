@@ -1,10 +1,21 @@
 import { db } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const instructorId = searchParams.get('instructorId');
+
+    const where: any = {};
+
+    if (instructorId) {
+      where.instructorId = instructorId;
+    } else {
+      where.isPublished = true;
+    }
+
     const courses = await db.course.findMany({
-      where: { isPublished: true },
+      where,
       include: {
         instructor: {
           select: { id: true, name: true, avatar: true, bio: true },
@@ -20,6 +31,17 @@ export async function GET() {
         _count: {
           select: { enrollments: true },
         },
+        enrollments: instructorId ? {
+          select: {
+            id: true,
+            progress: true,
+            completedAt: true,
+            enrolledAt: true,
+            user: {
+              select: { name: true, email: true },
+            },
+          },
+        } : false,
       },
       orderBy: { createdAt: 'desc' },
     });

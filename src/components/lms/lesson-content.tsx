@@ -16,7 +16,7 @@ import {
   Clock,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface LessonContentProps {
@@ -181,21 +181,23 @@ export function LessonContent({
   );
 }
 
+type QuizResults = {
+  score: number;
+  passed: boolean;
+  results: Array<{
+    questionId: string;
+    question: string;
+    userAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    explanation: string | null;
+  }>;
+} | null;
+
 interface QuizContentProps {
   quiz: Quiz;
-  quizResults: {
-    score: number;
-    passed: boolean;
-    results: Array<{
-      questionId: string;
-      question: string;
-      userAnswer: string;
-      correctAnswer: string;
-      isCorrect: boolean;
-      explanation: string | null;
-    }>;
-  } | null;
-  setQuizResults: (results: typeof quizResults) => void;
+  quizResults: QuizResults;
+  setQuizResults: (results: QuizResults) => void;
   isCompleted: boolean;
   userId: string;
   onComplete: () => void;
@@ -229,6 +231,35 @@ function QuizContent({
   const handleAnswerSelect = (answer: string) => {
     setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }));
   };
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (showResults) return;
+    
+    const keyNum = parseInt(e.key);
+    if (keyNum >= 1 && keyNum <= 4 && keyNum <= options.length) {
+      const selectedOption = options[keyNum - 1];
+      if (selectedOption) {
+        handleAnswerSelect(selectedOption);
+      }
+    }
+    
+    if (e.key === 'Enter') {
+      if (currentQuestion < questions.length - 1 && answers[currentQuestion]) {
+        setCurrentQuestion((prev) => prev + 1);
+      } else if (currentQuestion === questions.length - 1 && Object.keys(answers).length >= questions.length) {
+        handleSubmit();
+      }
+    }
+    
+    if (e.key === 'Backspace' && currentQuestion > 0) {
+      setCurrentQuestion((prev) => prev - 1);
+    }
+  }, [options, showResults, currentQuestion, questions.length, answers]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -376,7 +407,12 @@ function QuizContent({
             exit={{ opacity: 0, x: -20 }}
             className="space-y-6"
           >
-            <h2 className="text-lg font-medium">{question?.question}</h2>
+            <div>
+              <h2 className="text-lg font-medium">{question?.question}</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Press 1-{options.length} to select, Enter to continue
+              </p>
+            </div>
 
             <div className="space-y-3">
               {options.map((option: string, index: number) => (
@@ -385,11 +421,14 @@ function QuizContent({
                   variant={answers[currentQuestion] === option ? 'default' : 'outline'}
                   className="w-full justify-start text-left h-auto py-3 px-4"
                   onClick={() => handleAnswerSelect(option)}
+                  data-quiz-option={index + 1}
+                  aria-label={`Option ${index + 1}: ${option}`}
                 >
                   <span className="mr-3 flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center text-sm">
                     {String.fromCharCode(65 + index)}
                   </span>
                   {option}
+                  <span className="ml-auto text-xs text-muted-foreground">[{index + 1}]</span>
                 </Button>
               ))}
             </div>

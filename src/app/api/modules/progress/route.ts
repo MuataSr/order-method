@@ -1,7 +1,6 @@
 import { db } from '@/lib/db';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-// GET/PUT - Fetch module progress for authenticated user
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -43,6 +42,59 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const userId = body.userId;
+    const moduleName = body.moduleName;
+
+    if (!userId || !moduleName) {
+      return NextResponse.json(
+        { error: 'userId and moduleName are required' },
+        { status: 400 }
+      );
+    }
+
+    const currentDay = body.currentDay ?? 1;
+    const completedGatesRaw = body.completedGates ?? '[]';
+    const completedGates: string[] = typeof completedGatesRaw === 'string' 
+      ? JSON.parse(completedGatesRaw) 
+      : completedGatesRaw;
+
+    const progress = await db.moduleProgress.upsert({
+      where: {
+        userId_courseId_moduleName: {
+          userId,
+          courseId: 'order-framework',
+          moduleName,
+        },
+      },
+      create: {
+        userId,
+        courseId: 'order-framework',
+        moduleName,
+        currentDay,
+        completedGates: JSON.stringify(completedGates),
+        status: body.status ?? 'IN_PROGRESS',
+        startedAt: new Date(),
+      },
+      update: {
+        currentDay,
+        completedGates: JSON.stringify(completedGates),
+        status: body.status ?? 'IN_PROGRESS',
+      },
+    });
+
+    return NextResponse.json(progress);
+  } catch (error) {
+    console.error('Error updating module progress:', error);
+    return NextResponse.json(
+      { error: 'Failed to update progress' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -69,16 +121,20 @@ export async function PUT(request: NextRequest) {
     });
 
     const currentDay = body.currentDay ?? existing?.currentDay ?? 1;
-    const completedGates = existing?.completedGates ?? [];
+    const existingGates = existing?.completedGates 
+      ? (typeof existing.completedGates === 'string' 
+          ? JSON.parse(existing.completedGates) 
+          : existing.completedGates)
+      : [];
+    const completedGates: string[] = [...existingGates];
 
-    // Add new gate to completedGates if provided
     if (body.completedGate && !completedGates.includes(body.completedGate)) {
       completedGates.push(body.completedGate);
     }
 
-    const updateData: any = {
+    const updateData = {
       currentDay: currentDay ?? existing?.currentDay ?? 1,
-      completedGates,
+      completedGates: JSON.stringify(completedGates),
       status: completedGates.length >= 10 ? 'COMPLETED' : 'IN_PROGRESS',
       startedAt: existing?.startedAt ?? new Date(),
     };
@@ -93,8 +149,10 @@ export async function PUT(request: NextRequest) {
         },
       },
       create: {
+        userId,
+        courseId: 'order-framework',
+        moduleName,
         ...updateData,
-        updatedAt: new Date(),
       },
       update: {
         ...updateData,
