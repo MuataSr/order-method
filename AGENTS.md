@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this repository.
 
 ## Project Overview
 
-ORDER is a Learning Management System (LMS) built with Next.js 16, TypeScript, and Prisma. It supports three user roles (Student, Instructor, Admin) and provides course management, progress tracking, quizzes, and the O.R.D.E.R. framework modules.
+ORDER is a Learning Management System (LMS) built with Next.js 16, TypeScript, Prisma, and Zustand. It supports three user roles (Student, Instructor, Admin) with course management, progress tracking, and the O.R.D.E.R. framework modules.
 
 ## Build/Lint/Test Commands
 
@@ -38,16 +38,14 @@ bun run db:migrate       # Run migrations (prod)
 - **React Testing Library** - Component testing
 - **Playwright** - E2E browser testing
 
-Test locations:
-- Unit tests: `src/**/*.test.{ts,tsx}` or `src/**/__tests__/*.test.{ts,tsx}`
-- E2E tests: `e2e/*.spec.ts`
+Test locations: `src/**/*.test.{ts,tsx}`, `src/**/__tests__/*.test.{ts,tsx}`, `e2e/*.spec.ts`
 
 ## Code Style Guidelines
 
 ### Imports
 
+Order: React/Next → External libraries → Internal modules
 ```typescript
-// Order: React/Next → External libraries → Internal modules
 import { useState } from 'react';
 import { NextResponse } from 'next/server';
 import { useQuery } from '@tanstack/react-query';
@@ -58,8 +56,7 @@ import { CourseCard } from '@/components/lms/course-card';
 import { cn } from '@/lib/utils';
 ```
 
-- Use `@/*` path alias for internal imports
-- Use `import type` when only types are needed
+Use `@/*` path alias for internal imports. Use `import type` when only types are needed.
 
 ### Naming Conventions
 
@@ -87,7 +84,7 @@ interface CourseCardProps {
 }
 
 // Use type for unions
-export type ViewMode = 'dashboard' | 'catalog' | 'course' | 'lesson' | 'admin';
+export type ViewMode = 'dashboard' | 'catalog' | 'course';
 export type UserRole = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
 
 // Use const assertions for readonly objects
@@ -97,9 +94,7 @@ const levelColors: Record<string, string> = {
 };
 ```
 
-- TypeScript strict mode enabled, `noImplicitAny` disabled
-- ESLint config is relaxed - many rules are off
-- Avoid adding comments unless requested
+TypeScript strict mode enabled, `noImplicitAny` disabled. ESLint config is relaxed - many rules are off. Avoid adding comments unless requested.
 
 ### Component Structure
 
@@ -123,19 +118,14 @@ export function MyComponent({ title, isActive = false, onAction }: MyComponentPr
   return (
     <motion.div whileHover={{ y: -4 }}>
       <Card className={cn('base-classes', isActive && 'active-classes')}>
-        <CardContent>
-          {/* content */}
-        </CardContent>
+        <CardContent>{/* content */}</CardContent>
       </Card>
     </motion.div>
   );
 }
 ```
 
-- Include `'use client'` directive at top of client components
-- Use named exports: `export function ComponentName()`
-- Use `cn()` utility for conditional class names
-- Destructure props with defaults for optional props
+Include `'use client'` directive at top of client components. Use named exports. Use `cn()` utility for conditional class names. Destructure props with defaults for optional props.
 
 ### State Management
 
@@ -171,9 +161,7 @@ const { data, isLoading } = useQuery({
 });
 ```
 
-- Stores are in `src/lib/stores/`
-- Use `persist` middleware for data surviving page refresh
-- Store types defined in same file as store
+Stores are in `src/lib/stores/`. Use `persist` middleware for data surviving page refresh.
 
 ### API Routes
 
@@ -203,9 +191,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-- Use `db` from `@/lib/db` for Prisma operations
-- Always wrap in try-catch with `console.error`
-- Return errors as JSON with status codes
+Use `db` from `@/lib/db` for Prisma operations. Always wrap in try-catch with `console.error`. Return errors as JSON with status codes.
 
 ### Error Handling
 
@@ -223,9 +209,7 @@ export async function POST(request: NextRequest) {
 
 ### Database
 
-- Prisma schema: `prisma/schema.prisma`
-- After schema changes: `bun run db:push` (dev) or `bun run db:migrate` (prod)
-- Use `@@map("table_name")` for snake_case table names
+Prisma schema: `prisma/schema.prisma`. After schema changes: `bun run db:push` (dev) or `bun run db:migrate` (prod). Use `@@map("table_name")` for snake_case table names.
 
 ## Architecture Notes
 
@@ -244,6 +228,4 @@ App uses client-side view routing via Zustand store, not Next.js routing:
 
 ## Environment
 
-- Runtime: Bun
-- Database: SQLite (dev), configurable for production
-- Framework: Next.js 16 with App Router
+Runtime: Bun. Database: SQLite (dev), configurable for production. Framework: Next.js 16 with App Router.
