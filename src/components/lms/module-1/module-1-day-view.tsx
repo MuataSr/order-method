@@ -1,11 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
 import {
   Clock,
@@ -19,6 +24,8 @@ import {
   ListTodo,
   Grid3x3,
   CalendarDays,
+  Trash2,
+  Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -248,9 +255,8 @@ export function Module1DayView({
               <p className="text-muted-foreground mb-6">{content.description}</p>
 
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="learn">Learn</TabsTrigger>
-                  <TabsTrigger value="practice">Practice</TabsTrigger>
                   <TabsTrigger value="gate">
                     Gate
                     {isGateCompleted && <CheckCircle2 className="ml-1 h-4 w-4" />}
@@ -259,10 +265,6 @@ export function Module1DayView({
 
                 <TabsContent value="learn" className="space-y-4 mt-6">
                   <LearnContent day={day} />
-                </TabsContent>
-
-                <TabsContent value="practice" className="space-y-4 mt-6">
-                  <PracticeContent day={day} />
                 </TabsContent>
 
                 <TabsContent value="gate" className="space-y-4 mt-6">
@@ -328,13 +330,38 @@ function LearnContent({ day }: { day: number }) {
           Most people underestimate distractions and overestimate productive time.
         </p>
         <h4 className="font-medium text-sm">What to Track:</h4>
-        <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-          <li>Start and end times for work activities</li>
-          <li>Breaks and their duration</li>
-          <li>Meetings and calls</li>
-          <li>Task switching events</li>
-          <li>Energy levels throughout the day</li>
-        </ul>
+        <Accordion type="multiple" className="w-full">
+          <AccordionItem value="start-end-times">
+            <AccordionTrigger>Start and End Times for Work Activities</AccordionTrigger>
+            <AccordionContent className="text-muted-foreground">
+              Recording start and end times of your work activities is fundamental. This practice helps in identifying how long specific tasks take and can reveal inefficiencies. For instance, you may discover that a task you assumed would take an hour actually consumes two.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="breaks-duration">
+            <AccordionTrigger>Breaks and Their Duration</AccordionTrigger>
+            <AccordionContent className="text-muted-foreground">
+              Breaks are essential for maintaining productivity, but it's important to monitor their frequency and duration. Are your breaks rejuvenating, or do they extend longer than necessary? Tracking this can help you find right balance that keeps your energy levels optimal without cutting into productive time.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="meetings-calls">
+            <AccordionTrigger>Meetings and Calls</AccordionTrigger>
+            <AccordionContent className="text-muted-foreground">
+              Meetings and calls can be significant time consumers. Documenting duration and content of these interactions can highlight whether they are productive or if they could be streamlined or even eliminated.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="task-switching">
+            <AccordionTrigger>Task Switching Events</AccordionTrigger>
+            <AccordionContent className="text-muted-foreground">
+              Task switching, or multitasking, can lead to a loss of focus and efficiency. By tracking how often you switch tasks, you can identify patterns that might be hindering your concentration and productivity. Reducing task switching can lead to improved focus and time management.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="energy-levels">
+            <AccordionTrigger>Energy Levels Throughout Day</AccordionTrigger>
+            <AccordionContent className="text-muted-foreground">
+              Understanding your energy levels at different times of day can help you plan tasks according to when you are most alert and productive. Perhaps you are a morning person who accomplishes more in early hours, or maybe your energy peaks in afternoon. Aligning tasks with your natural energy rhythms can boost efficiency.
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
     ),
     2: (
@@ -508,193 +535,24 @@ function LearnContent({ day }: { day: number }) {
   return learnContent[day] || <p>Select a day to see the learning content.</p>;
 }
 
-// Practice content component
-function PracticeContent({ day }: { day: number }) {
-  const practiceContent: Record<number, React.ReactNode> = {
-    1: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Time Log Template</h3>
-        <p className="text-sm text-muted-foreground">
-          Use this template to track your time for the next 3 days:
-        </p>
-        <div className="p-4 bg-secondary rounded text-sm font-mono">
-          <div>Time | Activity | Category | Energy (1-10)</div>
-          <div>-----|---------|----------|---------------</div>
-          <div>9:00 | Checked email | Admin | 6</div>
-          <div>9:30 | Client call | Client | 8</div>
-          <div>... | ... | ... | ...</div>
-        </div>
-      </div>
-    ),
-    2: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Complete Day 2 Log</h3>
-        <p className="text-sm text-muted-foreground">
-          Continue your time tracking. You're building awareness of your patterns.
-        </p>
-        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded">
-          <p className="text-sm font-medium">Remember:</p>
-          <p className="text-sm text-muted-foreground">Don't change your behavior yet. Just observe and record.</p>
-        </div>
-      </div>
-    ),
-    3: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Task Brainstorm</h3>
-        <p className="text-sm text-muted-foreground">
-          Set a timer for 15 minutes and list EVERYTHING you're responsible for. Don't organize yet, just capture.
-        </p>
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Example items:</p>
-          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>Client project deliverables</li>
-            <li>Team meetings and 1:1s</li>
-            <li>Monthly financial review</li>
-            <li>Social media content</li>
-            <li>Website updates</li>
-            <li>Invoicing and bookkeeping</li>
-          </ul>
-        </div>
-      </div>
-    ),
-    4: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Categorize Your Tasks</h3>
-        <p className="text-sm text-muted-foreground">
-          Take 5 tasks from your inventory and place them in the appropriate quadrant.
-        </p>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-2 bg-red-500/10 rounded">
-            <strong>DO NOW:</strong>
-            <p className="text-muted-foreground">Client deadline today</p>
-          </div>
-          <div className="p-2 bg-blue-500/10 rounded">
-            <strong>SCHEDULE:</strong>
-            <p className="text-muted-foreground">Strategy session</p>
-          </div>
-          <div className="p-2 bg-yellow-500/10 rounded">
-            <strong>DELEGATE:</strong>
-            <p className="text-muted-foreground">Email responses</p>
-          </div>
-          <div className="p-2 bg-gray-500/10 rounded">
-            <strong>DELETE:</strong>
-            <p className="text-muted-foreground">Doomscrolling news</p>
-          </div>
-        </div>
-      </div>
-    ),
-    5: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Design Your Week</h3>
-        <p className="text-sm text-muted-foreground">
-          Sketch out your ideal week. Start with your most important commitments.
-        </p>
-        <div className="p-4 bg-secondary rounded text-sm">
-          <div className="font-medium mb-2">Sample Week Structure:</div>
-          <div className="space-y-1 text-xs">
-            <div>Mon: CEO Day - Strategy & Planning</div>
-            <div>Tue: Sales Day - Client Calls & Proposals</div>
-            <div>Wed: Content Day - Writing & Recording</div>
-            <div>Thu: CEO Day - Strategy & Planning</div>
-            <div>Fri: Admin Day - Email, Finance, Ops</div>
-          </div>
-        </div>
-      </div>
-    ),
-    6: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Assign Themes</h3>
-        <p className="text-sm text-muted-foreground">
-          Review your weekly schedule and assign clear themes to each day.
-        </p>
-        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded">
-          <p className="text-sm font-medium">Theme Day Rules:</p>
-          <ul className="text-xs text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-            <li>One primary theme per day</li>
-            <li>Group all related tasks</li>
-            <li>Reschedule urgent non-theme items</li>
-            <li>Communicate your schedule</li>
-          </ul>
-        </div>
-      </div>
-    ),
-    7: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Deep Work Session</h3>
-        <p className="text-sm text-muted-foreground">
-          Schedule a 90-minute deep work block for tomorrow. Prepare your environment.
-        </p>
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Pre-Session Checklist:</p>
-          <div className="text-xs text-muted-foreground space-y-1">
-            <div>☐ Clear workspace</div>
-            <div>☐ Silence phone</div>
-            <div>☐ Close email/tabs</div>
-            <div>☐ Set specific goal</div>
-            <div>☐ Prepare water/snack</div>
-          </div>
-        </div>
-      </div>
-    ),
-    8: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Energy Map</h3>
-        <p className="text-sm text-muted-foreground">
-          For the next 3 days, rate your energy hourly. Find your patterns.
-        </p>
-        <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded">
-          <p className="text-sm font-medium">Sample Energy Map:</p>
-          <div className="text-xs text-muted-foreground mt-2">
-            9am: ⚡⚡⚡ (Peak)<br />
-            11am: ⚡⚡ (High)<br />
-            2pm: ⚡ (Low - slump)<br />
-            4pm: ⚡⚡ (Recovering)<br />
-            7pm: ⚡⚡⚡ (Second wind)
-          </div>
-        </div>
-      </div>
-    ),
-    9: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Write Your Boundaries</h3>
-        <p className="text-sm text-muted-foreground">
-          Draft 3 boundary statements you can use with clients or team members.
-        </p>
-        <div className="space-y-2 text-sm">
-          <div className="p-2 bg-secondary rounded">
-            &quot;I check email twice daily at 10am and 3pm. For urgent matters, call me.&quot;
-          </div>
-          <div className="p-2 bg-secondary rounded">
-            &quot;My focus hours are 8-11am. I'll respond to messages after 11am.&quot;
-          </div>
-          <div className="p-2 bg-secondary rounded">
-            &quot;I reserve Fridays for admin work. Let's schedule our meeting for Monday.&quot;
-          </div>
-        </div>
-      </div>
-    ),
-    10: (
-      <div className="space-y-4">
-        <h3 className="font-semibold">Practice: Your System Document</h3>
-        <p className="text-sm text-muted-foreground">
-          Create a one-page summary of your time mastery system. Keep it visible.
-        </p>
-        <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded">
-          <p className="text-sm font-medium">Include:</p>
-          <ul className="text-xs text-muted-foreground mt-2 space-y-1 list-disc list-inside">
-            <li>Your weekly theme day structure</li>
-            <li>Deep work block times</li>
-            <li>Key boundaries to maintain</li>
-            <li>Weekly review schedule</li>
-            <li>Emergency recovery protocol</li>
-          </ul>
-        </div>
-      </div>
-    ),
-  };
-
-  return practiceContent[day] || <p>Select a day to see practice exercises.</p>;
+interface TimeEntry {
+  id: string;
+  startTime: string;
+  endTime: string;
+  activity: string;
+  category: string;
+  energy: number;
 }
+
+const CATEGORIES = [
+  'Client Work',
+  'Admin/Finance',
+  'Marketing/Sales',
+  'Content Creation',
+  'Creative Work',
+  'Personal/Break',
+  'Finance',
+] as const;
 
 // Gate content component
 function GateContent({
@@ -710,10 +568,94 @@ function GateContent({
   isCompleted: boolean;
   onComplete: (gateName: string, data?: any) => void;
 }) {
-  const [formData, setFormData] = useState<any>({});
+  const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [currentEntry, setCurrentEntry] = useState<TimeEntry>({
+    id: '',
+    startTime: '',
+    endTime: '',
+    activity: '',
+    category: '',
+    energy: 5,
+  });
+  const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    onComplete(gateName, formData);
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(`timelog-draft-${day}`);
+    if (savedDraft) {
+      setEntries(JSON.parse(savedDraft));
+    }
+  }, [day]);
+
+  const validateEntry = (entry: TimeEntry): boolean => {
+    return !!(
+      entry.startTime &&
+      entry.endTime &&
+      entry.activity.trim() &&
+      entry.category &&
+      entry.energy >= 1 &&
+      entry.energy <= 10
+    );
+  };
+
+  const calculateDuration = (startTime: string, endTime: string): number => {
+    if (!startTime || !endTime) return 0;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    return Math.max(0, (endMinutes - startMinutes) / 60);
+  };
+
+  const addEntry = () => {
+    if (!validateEntry(currentEntry)) return;
+
+    const newEntry = {
+      ...currentEntry,
+      id: Date.now().toString(),
+    };
+
+    setEntries([...entries, newEntry]);
+    setCurrentEntry({
+      id: '',
+      startTime: '',
+      endTime: '',
+      activity: '',
+      category: '',
+      energy: 5,
+    });
+  };
+
+  const deleteEntry = (id: string) => {
+    setEntries(entries.filter(e => e.id !== id));
+  };
+
+  const saveAsDraft = () => {
+    localStorage.setItem(`timelog-draft-${day}`, JSON.stringify(entries));
+  };
+
+  const handleSubmit = async () => {
+    if (entries.length === 0) return;
+    setIsSubmitting(true);
+
+    try {
+      const totalHours = entries.reduce((sum, entry) => {
+        return sum + calculateDuration(entry.startTime, entry.endTime);
+      }, 0);
+
+      onComplete(gateName, {
+        entryCount: entries.length,
+        totalHours: Math.round(totalHours * 100) / 100,
+        entries,
+        notes,
+      });
+
+      localStorage.removeItem(`timelog-draft-${day}`);
+    } catch (error) {
+      console.error('Failed to submit gate:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isCompleted) {
@@ -733,37 +675,184 @@ function GateContent({
         <div>
           <h3 className="font-semibold">{gateLabel}</h3>
           <p className="text-sm text-muted-foreground">
-            Complete this gate to unlock Day {day + 1}
+            {day <= 2
+              ? 'Record your activities across 3 days. Add entries one at a time below.'
+              : 'Complete this gate to unlock Day ' + (day + 1)}
           </p>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <label className="text-sm font-medium mb-2 block">
-            {day <= 2 ? 'Time Log Notes' :
-             day === 3 ? 'List Your Tasks' :
-             day === 4 ? 'Categorize 5 Tasks' :
-             day === 5 ? 'Upload Your Weekly Schedule' :
-             day === 6 ? 'Describe Your Theme Days' :
-             day === 7 ? 'Your Deep Work Protocol' :
-             day === 8 ? 'Energy Level Observations' :
-             day === 9 ? 'Your Boundary Statements' :
-             'Your Time Mastery System'}
-          </label>
-          <textarea
-            className="w-full min-h-[120px] p-3 border rounded-lg text-sm"
-            placeholder="Enter your response here..."
-            value={formData.notes || ''}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          />
-        </div>
+      {day <= 2 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Add New Entry</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Start Time *</label>
+                  <Input
+                    type="time"
+                    value={currentEntry.startTime}
+                    onChange={(e) => setCurrentEntry({ ...currentEntry, startTime: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">End Time *</label>
+                  <Input
+                    type="time"
+                    value={currentEntry.endTime}
+                    onChange={(e) => setCurrentEntry({ ...currentEntry, endTime: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Activity *</label>
+                <Input
+                  placeholder="e.g., Client meeting, Email check, Deep work on project"
+                  value={currentEntry.activity}
+                  onChange={(e) => setCurrentEntry({ ...currentEntry, activity: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Category *</label>
+                <Select
+                  value={currentEntry.category}
+                  onValueChange={(value) => setCurrentEntry({ ...currentEntry, category: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Energy Level (1-10) *</label>
+                <div className="flex items-center gap-4">
+                  <Slider
+                    min={1}
+                    max={10}
+                    value={[currentEntry.energy]}
+                    onValueChange={(values) => setCurrentEntry({ ...currentEntry, energy: values[0] })}
+                    className="flex-1"
+                  />
+                  <span className="text-lg font-semibold min-w-[40px] text-center">
+                    {currentEntry.energy}/10
+                  </span>
+                </div>
+              </div>
+              <Button onClick={addEntry} className="w-full">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Entry
+              </Button>
+            </CardContent>
+          </Card>
 
-        <Button onClick={handleSubmit} className="w-full">
-          Submit Gate
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+          {entries.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex justify-between items-center">
+                  <span>Your Entries ({entries.length})</span>
+                  <Button variant="outline" size="sm" onClick={saveAsDraft}>
+                    Save Draft
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {entries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="p-3 bg-secondary rounded flex justify-between items-start gap-3"
+                    >
+                      <div className="grid grid-cols-[80px_80px_1fr_140px_60px] gap-2 text-sm flex-1 min-w-0">
+                        <span className="font-medium">{entry.startTime}</span>
+                        <span className="font-medium">{entry.endTime}</span>
+                        <span className="truncate" title={entry.activity}>{entry.activity}</span>
+                        <Badge variant="secondary" className="truncate">{entry.category}</Badge>
+                        <span className="font-semibold text-primary">E:{entry.energy}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteEntry(entry.id)}
+                        className="shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Additional Notes (Optional)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                placeholder="Any patterns, insights, or observations from your time tracking..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+              />
+            </CardContent>
+          </Card>
+
+          <div className="space-y-3">
+            <Button
+              onClick={handleSubmit}
+              disabled={entries.length === 0 || isSubmitting}
+              className="w-full"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Time Log Gate'}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            {entries.length === 0 && (
+              <p className="text-sm text-center text-muted-foreground">
+                Add at least one time entry to submit this gate.
+              </p>
+            )}
+          </div>
+        </>
+      )}
+
+      {day > 2 && (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              {day === 3 ? 'List Your Tasks' :
+               day === 4 ? 'Categorize 5 Tasks' :
+               day === 5 ? 'Upload Your Weekly Schedule' :
+               day === 6 ? 'Describe Your Theme Days' :
+               day === 7 ? 'Your Deep Work Protocol' :
+               day === 8 ? 'Energy Level Observations' :
+               day === 9 ? 'Your Boundary Statements' :
+               'Your Time Mastery System'}
+            </label>
+            <Textarea
+              className="w-full min-h-[120px]"
+              placeholder="Enter your response here..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+
+          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full">
+            {isSubmitting ? 'Submitting...' : 'Submit Gate'}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
