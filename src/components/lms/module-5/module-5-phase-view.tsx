@@ -22,6 +22,7 @@ interface Module5PhaseViewProps {
   phase1Complete: boolean;
   phase2Complete: boolean;
   phase3Complete: boolean;
+  bypassGates?: boolean;
 }
 
 export function Module5PhaseView({
@@ -33,13 +34,15 @@ export function Module5PhaseView({
   phase1Complete,
   phase2Complete,
   phase3Complete,
+  bypassGates,
 }: Module5PhaseViewProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   const currentPhaseData = PHASES_MODULE_5[phase - 1];
   const phaseGatesCompleted = getPhaseGatesCompleted(phase, completedGates);
   const thisPhaseComplete = phaseGatesCompleted === currentPhaseData.gateCount;
 
   const canGoPrevious = phase > 1;
-  const canGoNext = (phase === 1 && phase1Complete) || 
+  const canGoNext = bypassGatesEnabled || (phase === 1 && phase1Complete) || 
                     (phase === 2 && phase2Complete) || 
                     (phase === 3 && phase3Complete) || 
                     (phase === 4 && isFreedomFounder);
@@ -108,7 +111,7 @@ export function Module5PhaseView({
           const isActive = p.number === phase;
           const gatesCompleted = getPhaseGatesCompleted(p.number, completedGates);
 
-          const isUnlocked = p.number === 1 || 
+          const isUnlocked = bypassGatesEnabled || p.number === 1 || 
             (p.number === 2 && phase1Complete) || 
             (p.number === 3 && phase2Complete) || 
             (p.number === 4 && phase3Complete);
@@ -156,18 +159,21 @@ export function Module5PhaseView({
           <Phase1Content
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
+            bypassGates={bypassGatesEnabled}
           />
         )}
         {phase === 2 && (
           <Phase2Content
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
+            bypassGates={bypassGatesEnabled}
           />
         )}
         {phase === 3 && (
           <Phase3Content
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
+            bypassGates={bypassGatesEnabled}
           />
         )}
         {phase === 4 && (
@@ -175,6 +181,7 @@ export function Module5PhaseView({
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
             isFreedomFounder={isFreedomFounder}
+            bypassGates={bypassGatesEnabled}
           />
         )}
       </motion.div>

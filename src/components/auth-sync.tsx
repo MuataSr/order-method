@@ -16,6 +16,7 @@ export function AuthSync({ children }: { children: React.ReactNode }) {
         name: session.user.name,
         avatar: session.user.avatar,
         role: session.user.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN',
+        bypassGates: session.user.bypassGates ?? false,
         bio: null,
       });
     } else if (status === 'unauthenticated') {

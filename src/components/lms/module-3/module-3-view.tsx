@@ -26,6 +26,7 @@ import {
   Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PreviewModeBadge } from '@/components/lms/preview-mode-badge';
 
 // ============================================================================
 // IMPORTS FROM MODULE 3 STRUCTURE
@@ -385,7 +386,10 @@ export function ModuleThreeView() {
                     </div>
                     <div>
                       <Badge variant="secondary" className="mb-2">Module 3 of 5</Badge>
-                      <h1 className="text-3xl font-bold">{MODULE_3_META.title}</h1>
+                      <div className="flex items-center">
+                        <h1 className="text-3xl font-bold">{MODULE_3_META.title}</h1>
+                        {user?.bypassGates && <PreviewModeBadge />}
+                      </div>
                     </div>
                   </div>
                   <p className="text-xl text-white/90">{MODULE_3_META.subtitle}</p>
@@ -680,6 +684,7 @@ export function ModuleThreeView() {
             phase1Complete={phase1Complete}
             phase2Complete={phase2Complete}
             phase3Complete={phase3Complete}
+            bypassGates={user?.bypassGates}
           />
 
           {isSubmitting && (

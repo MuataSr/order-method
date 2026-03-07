@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PreviewModeBadge } from '@/components/lms/preview-mode-badge';
 import {
   MODULE_5_META,
   PHASES_MODULE_5,
@@ -47,6 +48,7 @@ interface ModuleFiveViewProps {
     phase1Complete: boolean;
     phase2Complete: boolean;
     phase3Complete: boolean;
+    bypassGates?: boolean;
   }>;
 }
 
@@ -175,6 +177,12 @@ export function ModuleFiveView({ phaseViewComponent: PhaseView }: ModuleFiveView
   }, [user?.id, currentPhaseModule5, isFreedomFounder, setCompletedGatesModule5, setCurrentPhaseModule5, setIsFreedomFounder, completedGatesModule5]);
 
   const handlePhaseClick = useCallback((phaseNumber: number) => {
+    if (user?.bypassGates) {
+      setCurrentPhaseModule5(phaseNumber);
+      setActiveView('phase');
+      return;
+    }
+
     if (phaseNumber === 1) {
       setCurrentPhaseModule5(phaseNumber);
       setActiveView('phase');
@@ -188,7 +196,7 @@ export function ModuleFiveView({ phaseViewComponent: PhaseView }: ModuleFiveView
       setCurrentPhaseModule5(phaseNumber);
       setActiveView('phase');
     }
-  }, [completedGatesModule5, setCurrentPhaseModule5]);
+  }, [completedGatesModule5, setCurrentPhaseModule5, user?.bypassGates]);
 
   const handleStartModule = useCallback(async () => {
     if (!user?.id) return;
@@ -273,7 +281,10 @@ export function ModuleFiveView({ phaseViewComponent: PhaseView }: ModuleFiveView
                     </div>
                     <div>
                       <Badge variant="secondary" className="mb-2">Module 5 of 5 - Final Module</Badge>
-                      <h1 className="text-3xl font-bold">{MODULE_5_META.title}</h1>
+                      <div className="flex items-center">
+                        <h1 className="text-3xl font-bold">{MODULE_5_META.title}</h1>
+                        {user?.bypassGates && <PreviewModeBadge />}
+                      </div>
                     </div>
                   </div>
                   <p className="text-xl text-white/90">{MODULE_5_META.subtitle}</p>
@@ -346,7 +357,7 @@ export function ModuleFiveView({ phaseViewComponent: PhaseView }: ModuleFiveView
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {PHASES_MODULE_5.map((phase, index) => {
-                  const isUnlocked = isPhaseUnlocked(phase.number, completedGatesModule5);
+                  const isUnlocked = isPhaseUnlocked(phase.number, completedGatesModule5, user?.bypassGates);
                   const phaseGatesCompleted = getPhaseGatesCompleted(phase.number, completedGatesModule5);
                   const thisPhaseComplete = phaseGatesCompleted === phase.gateCount;
 
@@ -505,6 +516,7 @@ export function ModuleFiveView({ phaseViewComponent: PhaseView }: ModuleFiveView
             phase1Complete={phase1Complete}
             phase2Complete={phase2Complete}
             phase3Complete={phase3Complete}
+            bypassGates={user?.bypassGates}
           />
 
           {isSubmitting && (

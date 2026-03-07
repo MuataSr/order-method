@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GateContentViewProps, GateFormData, PhaseGate } from '../types';
+import { PreviewModeGate } from '@/components/lms/preview-mode-gate';
 
 /**
  * Phase Gate Content Component
@@ -35,7 +36,9 @@ export function PhaseGateContent({
   setFormData,
   onSubmit,
   onBack,
+  bypassGates,
 }: GateContentViewProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   // Local state for form validation
   const [touched, setTouched] = useState(false);
 
@@ -50,6 +53,17 @@ export function PhaseGateContent({
           <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
+    );
+  }
+
+  if (bypassGatesEnabled) {
+    return (
+      <PreviewModeGate
+        gateName={(gate as PhaseGate).name}
+        gateLabel={(gate as PhaseGate).label}
+        day={(gate as PhaseGate).day}
+        description={(gate as PhaseGate).description}
+      />
     );
   }
 

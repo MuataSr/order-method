@@ -15,11 +15,13 @@ import { PHASES_MODULE_5 } from '../constants';
 interface Phase2ContentProps {
   completedGates: string[];
   onCompleteGate: (gateName: string, data?: GateSubmissionData) => Promise<void>;
+  bypassGates?: boolean;
 }
 
 const gates = PHASES_MODULE_5[1].gates;
 
-export function Phase2Content({ completedGates, onCompleteGate }: Phase2ContentProps) {
+export function Phase2Content({ completedGates, onCompleteGate, bypassGates }: Phase2ContentProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   const [currentGate, setCurrentGate] = useState(() => {
     const incompleteGate = gates.find(g => !completedGates.includes(g.name));
     return incompleteGate ? incompleteGate.day : 8;
@@ -117,17 +119,17 @@ export function Phase2Content({ completedGates, onCompleteGate }: Phase2ContentP
       </Card>
 
       {/* Gate Navigation */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {gates.map((gate) => (
           <button
             key={gate.name}
-            onClick={() => isGateComplete(gate.name) && setCurrentGate(gate.day)}
-            disabled={!isGateComplete(gate.name) && gate.day > currentGate}
+            onClick={() => (bypassGatesEnabled || isGateComplete(gate.name)) && setCurrentGate(gate.day)}
+            disabled={!bypassGatesEnabled && !isGateComplete(gate.name) && gate.day > currentGate}
             className={cn(
               'p-3 rounded-lg border-2 text-left transition-all',
               isGateComplete(gate.name) && 'border-green-500 bg-green-500/10',
               currentGate === gate.day && !isGateComplete(gate.name) && 'border-primary bg-primary/10',
-              gate.day > currentGate && 'border-muted opacity-50 cursor-not-allowed'
+              !bypassGatesEnabled && gate.day > currentGate && 'border-muted opacity-50 cursor-not-allowed'
             )}
           >
             <div className="flex items-center justify-between mb-1">

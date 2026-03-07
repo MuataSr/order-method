@@ -20,6 +20,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PreviewModeBadge } from '@/components/lms/preview-mode-badge';
 import {
   MODULE_4_META,
   PHASES_MODULE_4,
@@ -46,6 +47,7 @@ interface ModuleFourViewProps {
     isTeamChampion: boolean;
     phase1Complete: boolean;
     phase2Complete: boolean;
+    bypassGates?: boolean;
   }>;
 }
 
@@ -171,6 +173,12 @@ export function ModuleFourView({ phaseViewComponent: PhaseView }: ModuleFourView
   }, [user?.id, currentPhaseModule4, isTeamChampion, setCompletedGatesModule4, setCurrentPhaseModule4, setIsTeamChampion, completedGatesModule4]);
 
   const handlePhaseClick = useCallback((phaseNumber: number) => {
+    if (user?.bypassGates) {
+      setCurrentPhaseModule4(phaseNumber);
+      setActiveView('phase');
+      return;
+    }
+
     if (phaseNumber === 1) {
       setCurrentPhaseModule4(phaseNumber);
       setActiveView('phase');
@@ -184,7 +192,7 @@ export function ModuleFourView({ phaseViewComponent: PhaseView }: ModuleFourView
       setCurrentPhaseModule4(phaseNumber);
       setActiveView('phase');
     }
-  }, [completedGatesModule4, setCurrentPhaseModule4]);
+  }, [completedGatesModule4, setCurrentPhaseModule4, user?.bypassGates]);
 
   const handleStartModule = useCallback(async () => {
     if (!user?.id) return;
@@ -264,7 +272,10 @@ export function ModuleFourView({ phaseViewComponent: PhaseView }: ModuleFourView
                     </div>
                     <div>
                       <Badge variant="secondary" className="mb-2">Module 4 of 5</Badge>
-                      <h1 className="text-3xl font-bold">{MODULE_4_META.title}</h1>
+                      <div className="flex items-center">
+                        <h1 className="text-3xl font-bold">{MODULE_4_META.title}</h1>
+                        {user?.bypassGates && <PreviewModeBadge />}
+                      </div>
                     </div>
                   </div>
                   <p className="text-xl text-white/90">{MODULE_4_META.subtitle}</p>
@@ -337,7 +348,7 @@ export function ModuleFourView({ phaseViewComponent: PhaseView }: ModuleFourView
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {PHASES_MODULE_4.map((phase, index) => {
-                  const isUnlocked = isPhaseUnlocked(phase.number, completedGatesModule4);
+                  const isUnlocked = isPhaseUnlocked(phase.number, completedGatesModule4, user?.bypassGates);
                   const phaseGatesCompleted = getPhaseGatesCompleted(phase.number, completedGatesModule4);
                   const thisPhaseComplete = phaseGatesCompleted === phase.gateCount;
 
@@ -495,6 +506,7 @@ export function ModuleFourView({ phaseViewComponent: PhaseView }: ModuleFourView
             isTeamChampion={isTeamChampion}
             phase1Complete={phase1Complete}
             phase2Complete={phase2Complete}
+            bypassGates={user?.bypassGates}
           />
 
           {isSubmitting && (

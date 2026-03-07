@@ -77,8 +77,10 @@ export function isPhaseUnlocked(
   currentPhase: number, 
   phase1Complete: boolean, 
   phase2Complete: boolean, 
-  phase3Complete: boolean
+  phase3Complete: boolean,
+  bypassGates: boolean = false
 ): boolean {
+  if (bypassGates) return true;
   if (currentPhase === 1) return true;
   if (currentPhase === 2) return phase1Complete;
   if (currentPhase === 3) return phase2Complete;

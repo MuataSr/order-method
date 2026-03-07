@@ -11,15 +11,18 @@ import { CheckCircle2, ChevronRight, Calendar, MessageSquare, Shield } from 'luc
 import { cn } from '@/lib/utils';
 import { GateSubmissionData } from '../types';
 import { PHASES_MODULE_4 } from '../constants';
+import { PreviewModeGate } from '@/components/lms/preview-mode-gate';
 
 interface Phase1ContentProps {
   completedGates: string[];
   onCompleteGate: (gateName: string, data?: GateSubmissionData) => Promise<void>;
+  bypassGates?: boolean;
 }
 
 const gates = PHASES_MODULE_4[0].gates;
 
-export function Phase1Content({ completedGates, onCompleteGate }: Phase1ContentProps) {
+export function Phase1Content({ completedGates, onCompleteGate, bypassGates }: Phase1ContentProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   const [currentGate, setCurrentGate] = useState(() => {
     const incompleteGate = gates.find(g => !completedGates.includes(g.name));
     return incompleteGate ? incompleteGate.day : 1;
@@ -86,8 +89,22 @@ export function Phase1Content({ completedGates, onCompleteGate }: Phase1ContentP
 
   return (
     <div className="space-y-6">
-      {/* Progress */}
-      <Card>
+      {bypassGatesEnabled && (
+        <div className="space-y-4">
+          {gates.map((gate) => (
+            <PreviewModeGate
+              key={gate.name}
+              gateName={gate.name}
+              gateLabel={gate.label}
+              day={gate.day}
+            />
+          ))}
+        </div>
+      )}
+      {!bypassGatesEnabled && (
+        <>
+          {/* Progress */}
+          <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Phase 1 Progress</span>
@@ -104,13 +121,13 @@ export function Phase1Content({ completedGates, onCompleteGate }: Phase1ContentP
         {gates.map((gate) => (
           <button
             key={gate.name}
-            onClick={() => isGateComplete(gate.name) && setCurrentGate(gate.day)}
-            disabled={!isGateComplete(gate.name) && gate.day > currentGate}
+            onClick={() => (bypassGatesEnabled || isGateComplete(gate.name)) && setCurrentGate(gate.day)}
+            disabled={!bypassGatesEnabled && !isGateComplete(gate.name) && gate.day > currentGate}
             className={cn(
               'p-3 rounded-lg border-2 text-left transition-all',
               isGateComplete(gate.name) && 'border-green-500 bg-green-500/10',
               currentGate === gate.day && !isGateComplete(gate.name) && 'border-primary bg-primary/10',
-              gate.day > currentGate && 'border-muted opacity-50 cursor-not-allowed'
+              !bypassGatesEnabled && gate.day > currentGate && 'border-muted opacity-50 cursor-not-allowed'
             )}
           >
             <div className="flex items-center justify-between mb-1">
@@ -349,9 +366,11 @@ export function Phase1Content({ completedGates, onCompleteGate }: Phase1ContentP
           </CardContent>
         </Card>
       )}
+        </>
+      )}
 
       {/* Phase Complete Message */}
-      {isGateComplete('roles_table') && (
+      {isGateComplete('roles_table') && !bypassGatesEnabled && (
         <Card className="border-green-500 bg-green-500/5">
           <CardContent className="p-6 text-center">
             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />

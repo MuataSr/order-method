@@ -63,7 +63,9 @@ export function Module3PhaseView({
   phase1Complete,
   phase2Complete,
   phase3Complete,
+  bypassGates,
 }: Module3PhaseViewProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   // ------------------------------------------------------------------------
   // STATE
   // ------------------------------------------------------------------------
@@ -79,7 +81,7 @@ export function Module3PhaseView({
   const phaseContent = PHASE_CONTENT[phase as keyof typeof PHASE_CONTENT];
   const phaseGatesCompleted = phaseContent.gates.filter(g => completedGates.includes(g.name)).length;
   const allGatesCompleted = completedGates.length >= TOTAL_GATES_MODULE_3;
-  const isPhaseAccessible = isPhaseUnlocked(phase, phase1Complete, phase2Complete, phase3Complete);
+  const isPhaseAccessible = isPhaseUnlocked(phase, phase1Complete, phase2Complete, phase3Complete, bypassGatesEnabled);
 
   // ------------------------------------------------------------------------
   // EVENT HANDLERS
@@ -235,6 +237,7 @@ export function Module3PhaseView({
                       setFormData={setFormData}
                       onSubmit={() => handleGateSubmit(phaseContent.gates[selectedGate])}
                       onBack={() => setSelectedGate(null)}
+                      bypassGates={bypassGatesEnabled}
                     />
                   ) : (
                     <PhaseGateList
