@@ -7,6 +7,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 12);
   const instructorPassword = await bcrypt.hash('instructor123', 12);
   const studentPassword = await bcrypt.hash('student123', 12);
+  const previewPassword = await bcrypt.hash('preview123', 12);
 
   const instructor = await prisma.user.upsert({
     where: { email: 'instructor@lms.com' },
@@ -46,10 +47,24 @@ async function main() {
     },
   });
 
+  const preview = await prisma.user.upsert({
+    where: { email: 'preview@order-method.com' },
+    update: {},
+    create: {
+      email: 'preview@order-method.com',
+      name: 'Preview User',
+      password: previewPassword,
+      role: 'STUDENT',
+      bypassGates: true,
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=preview',
+    },
+  });
+
   console.log('Created users:');
   console.log('  - Admin: admin@lms.com / admin123');
   console.log('  - Instructor: instructor@lms.com / instructor123');
   console.log('  - Student: student@lms.com / student123');
+  console.log('  - Preview: preview@order-method.com / preview123 (bypasses gates)');
 
   // Create courses
   const course1 = await prisma.course.create({
