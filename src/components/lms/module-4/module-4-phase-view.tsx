@@ -20,6 +20,7 @@ interface Module4PhaseViewProps {
   isTeamChampion: boolean;
   phase1Complete: boolean;
   phase2Complete: boolean;
+  bypassGates?: boolean;
 }
 
 export function Module4PhaseView({
@@ -30,13 +31,15 @@ export function Module4PhaseView({
   isTeamChampion,
   phase1Complete,
   phase2Complete,
+  bypassGates,
 }: Module4PhaseViewProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   const currentPhaseData = PHASES_MODULE_4[phase - 1];
   const phaseGatesCompleted = getPhaseGatesCompleted(phase, completedGates);
   const thisPhaseComplete = phaseGatesCompleted === currentPhaseData.gateCount;
 
   const canGoPrevious = phase > 1;
-  const canGoNext = (phase === 1 && phase1Complete) || (phase === 2 && phase2Complete) || (phase === 3 && isTeamChampion);
+  const canGoNext = bypassGatesEnabled || (phase === 1 && phase1Complete) || (phase === 2 && phase2Complete) || (phase === 3 && isTeamChampion);
 
   const handlePrevious = () => {
     if (canGoPrevious) {
@@ -101,16 +104,17 @@ export function Module4PhaseView({
           const isComplete = isPhaseComplete(p.gates, completedGates);
           const isActive = p.number === phase;
           const gatesCompleted = getPhaseGatesCompleted(p.number, completedGates);
+          const isUnlocked = bypassGatesEnabled || p.number === 1 || (p.number === 2 && phase1Complete) || (p.number === 3 && phase2Complete);
 
           return (
             <button
               key={p.number}
               onClick={() => {
-                if (p.number === 1 || (p.number === 2 && phase1Complete) || (p.number === 3 && phase2Complete)) {
+                if (isUnlocked) {
                   onPhaseChange(p.number);
                 }
               }}
-              disabled={p.number > 1 && !((p.number === 2 && phase1Complete) || (p.number === 3 && phase2Complete))}
+              disabled={!isUnlocked}
               className={cn(
                 'flex-1 p-3 rounded-lg border-2 transition-all text-left',
                 isActive && 'border-primary bg-primary/10',
@@ -145,12 +149,14 @@ export function Module4PhaseView({
           <Phase1Content
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
+            bypassGates={bypassGatesEnabled}
           />
         )}
         {phase === 2 && (
           <Phase2Content
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
+            bypassGates={bypassGatesEnabled}
           />
         )}
         {phase === 3 && (
@@ -158,6 +164,7 @@ export function Module4PhaseView({
             completedGates={completedGates}
             onCompleteGate={onCompleteGate}
             isTeamChampion={isTeamChampion}
+            bypassGates={bypassGatesEnabled}
           />
         )}
       </motion.div>

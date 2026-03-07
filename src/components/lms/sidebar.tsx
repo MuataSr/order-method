@@ -138,9 +138,9 @@ export function Sidebar({ onCollapse }: SidebarProps) {
           width: collapsed ? 80 : 280,
           x: isMobile ? (isSidebarOpen ? 0 : -280) : 0,
         }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
           'fixed left-0 top-0 h-full bg-card border-r border-border z-50',
-          'transition-all duration-300',
           'flex flex-col'
         )}
       >

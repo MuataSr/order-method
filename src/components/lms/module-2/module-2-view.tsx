@@ -23,6 +23,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PreviewModeBadge } from '@/components/lms/preview-mode-badge';
 
 // Module 2 metadata
 const MODULE_2_META = {
@@ -238,7 +239,8 @@ export function ModuleTwoView() {
                     <div>
                       <Badge variant="secondary" className="mb-2">Module 2 of 5</Badge>
                       <h1 className="text-3xl font-bold">{MODULE_2_META.title}</h1>
-                    </div>
+                        {user?.bypassGates && <PreviewModeBadge />}
+                      </div>
                   </div>
                   <p className="text-xl text-white/90">{MODULE_2_META.subtitle}</p>
                   <p className="text-white/80 max-w-2xl">{MODULE_2_META.description}</p>
@@ -447,6 +449,7 @@ export function ModuleTwoView() {
             onCompleteGate={handleCompleteGate}
             onDayChange={handleDayChange}
             isWorkflowAnalyst={isWorkflowAnalyst}
+            bypassGates={user?.bypassGates}
           />
 
           {isSubmitting && (

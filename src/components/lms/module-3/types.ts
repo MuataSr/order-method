@@ -67,6 +67,7 @@ export interface Module3PhaseViewProps {
   phase1Complete: boolean;
   phase2Complete: boolean;
   phase3Complete: boolean;
+  bypassGates?: boolean;
 }
 
 // ============================================================================
@@ -133,6 +134,7 @@ export interface GateContentViewProps {
   setFormData: (data: GateFormData) => void;
   onSubmit: () => void;
   onBack: () => void;
+  bypassGates?: boolean;
 }
 
 // ============================================================================

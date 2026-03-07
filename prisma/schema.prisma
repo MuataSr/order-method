@@ -18,6 +18,7 @@ model User {
   password      String?
   avatar        String?
   role          String    @default("STUDENT") // STUDENT, INSTRUCTOR, ADMIN
+  bypassGates   Boolean   @default(false) // Allow access to all content without completing gates
   bio           String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

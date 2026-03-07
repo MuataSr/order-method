@@ -34,6 +34,7 @@ export default function AppLayout({
         name: session.user.name || '',
         avatar: session.user.avatar,
         role: session.user.role as UserRole,
+        bypassGates: session.user.bypassGates ?? false,
         bio: null,
       });
     }
@@ -60,7 +61,7 @@ export default function AppLayout({
       
       <main
         className={cn(
-          'transition-all duration-300',
+          'transition-[margin] duration-300 ease-in-out',
           'flex-1 flex flex-col min-h-screen',
           sidebarCollapsed ? 'lg:ml-[80px]' : 'lg:ml-[280px]'
         )}

@@ -14,6 +14,7 @@ import { GateSubmissionData } from '../types';
 import { PHASES_MODULE_4, TOTAL_GATES_MODULE_4 } from '../constants';
 
 interface Phase3ContentProps {
+  bypassGates?: boolean;
   completedGates: string[];
   onCompleteGate: (gateName: string, data?: GateSubmissionData) => Promise<void>;
   isTeamChampion: boolean;
@@ -21,7 +22,8 @@ interface Phase3ContentProps {
 
 const gates = PHASES_MODULE_4[2].gates;
 
-export function Phase3Content({ completedGates, onCompleteGate, isTeamChampion }: Phase3ContentProps) {
+export function Phase3Content({ completedGates, onCompleteGate, isTeamChampion, bypassGates }: Phase3ContentProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   const [currentGate, setCurrentGate] = useState(() => {
     const incompleteGate = gates.find(g => !completedGates.includes(g.name));
     return incompleteGate ? incompleteGate.day : 15;
@@ -103,13 +105,13 @@ export function Phase3Content({ completedGates, onCompleteGate, isTeamChampion }
         {gates.map((gate) => (
           <button
             key={gate.name}
-            onClick={() => isGateComplete(gate.name) && setCurrentGate(gate.day)}
-            disabled={!isGateComplete(gate.name) && gate.day > currentGate}
+            onClick={() => (bypassGatesEnabled || isGateComplete(gate.name)) && setCurrentGate(gate.day)}
+            disabled={!bypassGatesEnabled && !isGateComplete(gate.name) && gate.day > currentGate}
             className={cn(
               'p-3 rounded-lg border-2 text-left transition-all',
               isGateComplete(gate.name) && 'border-green-500 bg-green-500/10',
               currentGate === gate.day && !isGateComplete(gate.name) && 'border-primary bg-primary/10',
-              gate.day > currentGate && 'border-muted opacity-50 cursor-not-allowed'
+              !bypassGatesEnabled && gate.day > currentGate && 'border-muted opacity-50 cursor-not-allowed'
             )}
           >
             <div className="flex items-center justify-between mb-1">

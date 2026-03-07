@@ -20,8 +20,10 @@ export function calculatePhaseProgress(
 
 export function isPhaseUnlocked(
   phaseNumber: number,
-  completedGates: string[]
+  completedGates: string[],
+  bypassGates: boolean = false
 ): boolean {
+  if (bypassGates) return true;
   if (phaseNumber === 1) return true;
 
   const previousPhase = PHASES_MODULE_5[phaseNumber - 2];

@@ -24,6 +24,7 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PreviewModeGate } from '@/components/lms/preview-mode-gate';
 
 // Day content configuration
 const DAY_CONTENT = {
@@ -115,6 +116,7 @@ interface Module2DayViewProps {
   onCompleteGate: (gateName: string, data?: any) => void;
   onDayChange: (day: number) => void;
   isWorkflowAnalyst: boolean;
+  bypassGates?: boolean;
 }
 
 export function Module2DayView({
@@ -123,7 +125,9 @@ export function Module2DayView({
   onCompleteGate,
   onDayChange,
   isWorkflowAnalyst,
+  bypassGates,
 }: Module2DayViewProps) {
+  const bypassGatesEnabled = bypassGates ?? false;
   const content = DAY_CONTENT[day as keyof typeof DAY_CONTENT];
   const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'gate'>('learn');
 
@@ -137,7 +141,8 @@ export function Module2DayView({
   }
 
   const isGateCompleted = completedGates.includes(content.gateName);
-  const canAccessDay = day === 1 || completedGates.includes(DAY_CONTENT[day - 1 as keyof typeof DAY_CONTENT]?.gateName);
+  const canAccessDay = bypassGatesEnabled || day === 1 || completedGates.includes(DAY_CONTENT[day - 1 as keyof typeof DAY_CONTENT]?.gateName);
+  const canProceedToNext = bypassGatesEnabled || isGateCompleted;
   const isLastDay = day === 10;
   const allGatesCompleted = completedGates.length >= 10;
 
@@ -161,7 +166,7 @@ export function Module2DayView({
         <Button
           variant="outline"
           onClick={() => onDayChange(day + 1)}
-          disabled={isLastDay || !canAccessDay}
+          disabled={isLastDay || !canProceedToNext}
         >
           Next Day
           <ArrowRight className="ml-2 h-4 w-4" />
@@ -269,13 +274,22 @@ export function Module2DayView({
                 </TabsContent>
 
                 <TabsContent value="gate" className="space-y-4 mt-6">
-                  <GateContent
-                    day={day}
-                    gateName={content.gateName}
-                    gateLabel={content.gateLabel}
-                    isCompleted={isGateCompleted}
-                    onComplete={onCompleteGate}
-                  />
+                  {bypassGatesEnabled ? (
+                    <PreviewModeGate
+                      day={day}
+                      gateName={content.gateName}
+                      gateLabel={content.gateLabel}
+                      description={content.description}
+                    />
+                  ) : (
+                    <GateContent
+                      day={day}
+                      gateName={content.gateName}
+                      gateLabel={content.gateLabel}
+                      isCompleted={isGateCompleted}
+                      onComplete={onCompleteGate}
+                    />
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
